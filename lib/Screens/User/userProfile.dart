@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:community_app/Screens/User/updateUserProfilePage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:community_app/Screens/Contact/updateSingleContactDetailsPage.dart';
@@ -35,7 +36,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late String connections = "";
   late String socialLinks = "";
   late String note = "";
-  late Contact user;
   bool _loaded = false;
   List<Contact> connectionsContact = [];
   // var img = Image.network(src);
@@ -206,16 +206,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
         InkWell(
           onTap: () {
             print("Taped edit");
-            // Navigator.push(
-            //     context,
-            //     MaterialPageRoute(
-            //         builder: ((context) => UpdateSingleContactDetailsPage( contact: user)))
-            // );
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: ((context) => UpdateUserProfilePage(user: widget.user,)))
+            );
           },
           child: Container(
             padding: const EdgeInsets.only(left: 0, top: 10, bottom: 10, right: 10),
             //Icon(Icons.more_vert)
-            child: Icon(Icons.create_rounded, color: Colors.white),
+            child: Icon(Icons.drive_file_rename_outline_rounded, color: Colors.white),
           ),
         ),
         InkWell(
@@ -231,7 +231,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         //Settings & Logout
         PopupMenuButton(
           // add icon, by default "3 dot" icon
-
             icon: Icon(
               Icons.more_vert_rounded,
               color: Colors.white,

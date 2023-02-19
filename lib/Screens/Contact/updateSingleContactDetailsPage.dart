@@ -38,18 +38,18 @@ class _UpdateSingleContactDetailsPageState
   TextEditingController addressController = TextEditingController();
   TextEditingController socialMediaController = TextEditingController();
   TextEditingController noteController = TextEditingController();
-  late String name;
-  late String photo;
-  late String phone_no;
-  late String email;
-  late String designation;
-  late String organization;
-  late String dob;
-  late String gender;
-  late String address;
-  late String connections;
-  late String socialLinks;
-  late String note;
+  // late String name;
+  // late String photo;
+  // late String phone_no;
+  // late String email;
+  // late String designation;
+  // late String organization;
+  // late String dob;
+  // late String gender;
+  // late String address;
+  // late String connections;
+  // late String socialLinks;
+  // late String note;
   String image = 'https://scm.womenindigital.net/storage/uploads/';
 
   List<Contact> connectionsContact = [];
@@ -70,87 +70,80 @@ class _UpdateSingleContactDetailsPageState
   void initState() {
     super.initState();
     //imagePicker = new ImagePicker();
+    //myController.addListener(_printLatestValue);
+    //nameController.addListener(() { })
     dobController.text = ""; //set the initial value of text field
-    dropdownvalue = 'Male';
+
+
     valueInitialization();
     getConnectionString();
+
   }
 
   void valueInitialization() {
     if (widget.contact.name?.isEmpty ?? true) {
-      name = "";
+      nameController.text = "";
     } else {
-      name = widget.contact.name.toString();
+      nameController.text = widget.contact.name.toString();
     }
-    if (widget.contact.photo?.isEmpty ?? true) {
-      photo = "";
-    } else {
-      photo = widget.contact.photo.toString();
-    }
+    // if (widget.contact.photo?.isEmpty ?? true) {
+    //   photo = "";
+    // } else {
+    //   photo = widget.contact.photo.toString();
+    // }
 
     if (widget.contact.phone_no?.isEmpty ?? true) {
-      phone_no = " ";
+      phoneController.text = "";
     } else {
-      phone_no = widget.contact.phone_no.toString();
+      phoneController.text = widget.contact.phone_no.toString();
     }
 
     if (widget.contact.email?.isEmpty ?? true) {
-      email = " ";
+      emailController.text = "";
     } else {
-      email = widget.contact.email.toString();
+      emailController.text = widget.contact.email.toString();
     }
 
     if (widget.contact.designation?.isEmpty ?? true) {
-      designation = " ";
+      designationController.text = "";
     } else {
-      designation = widget.contact.designation.toString();
+      designationController.text = widget.contact.designation.toString();
     }
 
     if (widget.contact.organization?.isEmpty ?? true) {
-      organization = " ";
+      organizationController.text = "";
     } else {
-      organization = widget.contact.organization.toString();
+      organizationController.text = widget.contact.organization.toString();
     }
 
-    if (widget.contact.connected_id?.isEmpty ?? true) {
-      connections = " ";
-    } else {
-      connections = widget.contact.connected_id.toString();
-    }
-
-    if (widget.contact.date_of_birth?.isEmpty ?? true) {
-      dob = " ";
-    } else {
-      //final splitted = string.split(' ');
-      dob = widget.contact.date_of_birth.toString();
-      print("DOB: $dob");
-    }
 
     if (widget.contact.gender?.isEmpty ?? true) {
-      gender = " ";
+      dropdownvalue = 'Male';
+      //genderController.text = "";
     } else {
-      gender = widget.contact.gender.toString();
+      genderController.text = widget.contact.gender.toString();
+      dropdownvalue = widget.contact.gender.toString();
     }
 
     if (widget.contact.address?.isEmpty ?? true) {
-      address = " ";
+      addressController.text = " ";
     } else {
-      address = widget.contact.address.toString();
+      addressController.text = widget.contact.address.toString();
     }
 
     if (widget.contact.social_media?.isEmpty ?? true) {
-      socialLinks = " ";
+      socialMediaController.text = " ";
     } else {
-      socialLinks = widget.contact.social_media.toString();
+      socialMediaController.text = widget.contact.social_media.toString();
     }
 
     if (widget.contact.note?.isEmpty ?? true) {
-      note = " ";
+      noteController.text = " ";
     } else {
-      note = widget.contact.note.toString();
+      noteController.text = widget.contact.note.toString();
     }
-    print('$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
-        '$gender : $address : $connections : $socialLinks : $note');
+    // print('$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
+    //     '$gender : $address : $connections : $socialLinks : $note');
   }
 
   String getConnectionString() {
@@ -183,20 +176,6 @@ class _UpdateSingleContactDetailsPageState
     }
     print("connectionsContact: $connectionsContact");
   }
-
-  // setTextFieldInit() {
-  //   nameController.text.toString() = widget.contact.name.toString();
-  //   designationController = TextEditingController();
-  //   organizationController = TextEditingController();
-  //   connectedController = TextEditingController();
-  //   phoneController = TextEditingController();
-  //   emailController = TextEditingController();
-  //   dobController = TextEditingController();
-  //   genderController = TextEditingController();
-  //   addressController = TextEditingController();
-  //   socialMediaController = TextEditingController();
-  //   noteController = TextEditingController();
-  // }
 
   void getConnectionItemList(List<Contact> contactList) {
     for (Contact x in contactList) {
@@ -307,6 +286,8 @@ class _UpdateSingleContactDetailsPageState
     // final photoString = res[14].split(': ');
     // print(photoString[1]);
   }
+
+
   String _getPhotoID(String rawDetails) {
     final value = rawDetails.split('data :');
     String details = value[1].replaceAll(RegExp('[^-A-Za-z0-9,:._@ +]'), '');
@@ -536,7 +517,7 @@ class _UpdateSingleContactDetailsPageState
                     height: height * (23 / 100),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(image+photo,fit: BoxFit.fitHeight,),
+                      child: Image.network(image+widget.contact.photo.toString(),fit: BoxFit.fitHeight,),
                     ),
                         ),
                 ),
@@ -642,9 +623,9 @@ class _UpdateSingleContactDetailsPageState
   }
 
   Widget _genderDropDown(String hintText, Icon icon) {
-    if (gender != " ") {
-      genderController.text = gender;
-    }
+    // if (gender != " ") {
+    //   genderController.text = gender;
+    // }
     return Container(
       width: MediaQuery.of(context).size.width,
       margin: EdgeInsets.symmetric(vertical: 10),
@@ -721,9 +702,9 @@ class _UpdateSingleContactDetailsPageState
   }
 
   Widget _dateOfBirth(String hintText, Icon icon) {
-    if (dob != " ") {
-      dobController.text = dob;
-    }
+    // if (dob != " ") {
+    //   dobController.text = dob;
+    // }
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
       child: TextField(
@@ -769,72 +750,75 @@ class _UpdateSingleContactDetailsPageState
 
   Widget _entryField(
       String hintText,
-      String value,
+      //String value,
       TextEditingController controller,
       TextCapitalization type,
       TextInputType inputType,
       Icon icon,
       {bool isPassword = false}) {
-    if(hintText == 'Name') {
-      if (value != " ") {
-        controller.text = value;
-        controller.selection =
-            TextSelection.collapsed(offset: controller.text.length);
-      }
-      //TextEditingController controllerTitle,
-      return Container(
-        margin: EdgeInsets.symmetric(vertical: 10),
-        child: TextField(
-          //enabled: false, //Not clickable and not editable
-          keyboardType: inputType,
-          textInputAction: TextInputAction.next,
-          textCapitalization: type,
-          controller: controller,
-          obscureText: isPassword,
-          style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
-          decoration: InputDecoration(
-              hintText: hintText,
-              prefixIcon: icon,
-              errorText: _validate ? 'Name Can\'t Be Empty' : null,
-
-              //suffixIcon: Icon(Icons.),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-              ),
-              fillColor: Colors.transparent,
-              filled: true),
-        ),
-      );
-    }
-    else {
-      if (value != " ") {
-        controller.text = value;
-        controller.selection =
-            TextSelection.collapsed(offset: controller.text.length);
-      }
-      //TextEditingController controllerTitle,
-      return Container(
-        margin: EdgeInsets.symmetric(vertical: 10),
-        child: TextField(
-          //enabled: false, //Not clickable and not editable
-          keyboardType: inputType,
-          textInputAction: TextInputAction.next,
-          textCapitalization: type,
-          controller: controller,
-          obscureText: isPassword,
-          style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
-          decoration: InputDecoration(
-              hintText: hintText,
-              prefixIcon: icon,
-              //suffixIcon: Icon(Icons.),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-              ),
-              fillColor: Colors.transparent,
-              filled: true),
-        ),
-      );
-    }
+    controller.selection =
+        TextSelection.collapsed(offset: controller.text.length);
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: TextField(
+        //enabled: false, //Not clickable and not editable
+        keyboardType: inputType,
+        textInputAction: TextInputAction.next,
+        textCapitalization: type,
+        controller: controller,
+        obscureText: isPassword,
+        style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
+        decoration: InputDecoration(
+            hintText: hintText,
+            prefixIcon: icon,
+            //suffixIcon: Icon(Icons.),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+            ),
+            fillColor: Colors.transparent,
+            filled: true),
+      ),
+    );
+    // if(hintText == 'Name') {
+    //   if (value != " ") {
+    //     controller.text = value;
+    //     controller.selection =
+    //         TextSelection.collapsed(offset: controller.text.length);
+    //   }
+    //   //TextEditingController controllerTitle,
+    //   return Container(
+    //     margin: EdgeInsets.symmetric(vertical: 10),
+    //     child: TextField(
+    //       //enabled: false, //Not clickable and not editable
+    //       keyboardType: inputType,
+    //       textInputAction: TextInputAction.next,
+    //       textCapitalization: type,
+    //       controller: controller,
+    //       obscureText: isPassword,
+    //       style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
+    //       decoration: InputDecoration(
+    //           hintText: hintText,
+    //           prefixIcon: icon,
+    //           errorText: _validate ? 'Name Can\'t Be Empty' : null,
+    //
+    //           //suffixIcon: Icon(Icons.),
+    //           enabledBorder: const UnderlineInputBorder(
+    //             borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+    //           ),
+    //           fillColor: Colors.transparent,
+    //           filled: true),
+    //     ),
+    //   );
+    //
+    // }
+    // else {
+    //   if (value != " ") {
+    //     //controller.text = value;
+    //
+    //   }
+    //   //TextEditingController controllerTitle,
+    //
+    // }
 
   }
 
@@ -845,7 +829,7 @@ class _UpdateSingleContactDetailsPageState
         //TextInputType inputType, Icon icon, {bool isPassword = false}
         _entryField(
           "Name",
-          name,
+         // name,
           nameController,
           TextCapitalization.words,
           TextInputType.name,
@@ -853,7 +837,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Designation",
-          designation,
+         // designation,
           designationController,
           TextCapitalization.words,
           TextInputType.text,
@@ -861,7 +845,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Organization",
-          organization,
+          //organization,
           organizationController,
           TextCapitalization.words,
           TextInputType.text,
@@ -869,7 +853,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Phone",
-          phone_no,
+          //phone_no,
           phoneController,
           TextCapitalization.none,
           TextInputType.phone,
@@ -877,7 +861,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Email",
-          email,
+          //email,
           emailController,
           TextCapitalization.none,
           TextInputType.emailAddress,
@@ -887,7 +871,7 @@ class _UpdateSingleContactDetailsPageState
         _genderDropDown("Male", Icon(Icons.calendar_today)),
         _entryField(
           "Address",
-          address,
+          //address,
           addressController,
           TextCapitalization.words,
           TextInputType.streetAddress,
@@ -899,7 +883,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Social Media Link",
-          socialLinks,
+          //socialLinks,
           socialMediaController,
           TextCapitalization.none,
           TextInputType.text,
@@ -907,7 +891,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Note",
-          note,
+          //note,
           noteController,
           TextCapitalization.sentences,
           TextInputType.text,
@@ -928,34 +912,32 @@ class _UpdateSingleContactDetailsPageState
         width: width,
         child: Stack(
           children: <Widget>[
-            Positioned(
-              top: 0,
-              right: 0,
-              height: (width * (870 / 1080)),
-              width: width,
-              child: Image.asset('assets/images/add-user.png'),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 25),
-              margin: EdgeInsets.only(top: 80),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(height: 10),
-                    _imagePicker(height,width),
-                    SizedBox(height: 33),
-                    _textFieldWidget(),
-
-                    // _genderDropDown(),
-                    SizedBox(height: 20),
-                    // _submitButton(),
-                    SizedBox(height: 20),
-                  ],
-                ),
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(width: width,height: (width * (870 / 1080)),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        height: (width * (870 / 1080)),
+                        width: width,
+                        child: Image.asset('assets/images/add-user.png'),
+                      ),
+                      Positioned(top: 90,width: width, child: Center(child: _imagePicker(height, width))),
+                    ],
+                  ),),
+                  SizedBox(height: 10),
+                  Container(
+                    margin: EdgeInsets.only(left: 20,right: 20),
+                      child: _textFieldWidget()),
+                ],
               ),
             ),
+            Positioned(top: 0 ,height: 50,child: Image.asset('assets/images/overlay.png')),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _updateButton()),
           ],

@@ -54,7 +54,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   bool isLoading = false;
   bool _validate = false;
   late String _id;
-  Service service = Service();
 
   @override
   void initState() {
@@ -335,6 +334,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   Widget _imagePicker(double height, double width) {
     return GestureDetector(
       onTap: () {
+        print("tapped");
         showModalBottomSheet<void>(
           context: context,
           builder: (BuildContext context) {
@@ -374,7 +374,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
         height: height * (23 / 100),
         width: width * (35 / 100) + 100,
         child: Container(
-         // color: Colors.red,
+          // color: Colors.red,
           //X = 480 × (384/805)
           width: width * (38 / 100),
           //X = 540 × (805/384)
@@ -390,33 +390,33 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                 child: Container(
                   child: (_image != null && _image.path != '/')
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.file(
-                            File(_image!.path).absolute,
-                            // _image,
-                            width: width * (38 / 100),
-                            height: height * (23 / 100),
-                            fit: BoxFit.fitHeight,
-                          ),
-                        )
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.file(
+                      File(_image!.path).absolute,
+                      // _image,
+                      width: width * (38 / 100),
+                      height: height * (23 / 100),
+                      fit: BoxFit.fitHeight,
+                    ),
+                  )
                       : Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xfff3f3f4),
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                          ),
-                          width: width * (38 / 100),
-                          height: height * (23 / 100),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.asset(
-                              'assets/images/profile-white.png',
-                              // _image,
-                              width: width * (35 / 100),
-                              height: height * (23 / 100),
-                              fit: BoxFit.fitHeight,
-                            ),
-                          ),
-                        ),
+                    decoration: const BoxDecoration(
+                      color: Color(0xfff3f3f4),
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    width: width * (38 / 100),
+                    height: height * (23 / 100),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(
+                        'assets/images/profile-white.png',
+                        // _image,
+                        width: width * (35 / 100),
+                        height: height * (23 / 100),
+                        fit: BoxFit.fitHeight,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               Positioned(bottom: 0, right: 15 , child: _cameraIcon()),
@@ -450,7 +450,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
 
   Widget _genderSuffixPopUpMenu() {
     return PopupMenuButton(
-        // add icon, by default "3 dot" icon
+      // add icon, by default "3 dot" icon
         icon: Icon(Icons.keyboard_arrow_down_rounded),
         itemBuilder: (context) {
           return [
@@ -485,7 +485,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
 
   Widget _genderPrefixPopUpMenu() {
     return PopupMenuButton(
-        // add icon, by default "3 dot" icon
+      // add icon, by default "3 dot" icon
         icon: Icon(Icons.accessibility_new),
         itemBuilder: (context) {
           return [
@@ -564,10 +564,10 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             spacing: 5,
             children: _checkedItems
                 .map((e) => Chip(
-                      backgroundColor: Color(0xFF926AD3),
-                      deleteIcon: Icon(Icons.close),
-                      label: Text(e,style: TextStyle(color: Colors.white),),
-                    ))
+              backgroundColor: Color(0xFF926AD3),
+              deleteIcon: Icon(Icons.close),
+              label: Text(e,style: TextStyle(color: Colors.white),),
+            ))
                 .toList(),
           ),
           TextField(
@@ -901,22 +901,16 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                         width: width,
                         child: Center(child: _imagePicker(height, width),),
                       ),
-                      // Positioned(
-                      //   top: 0,
-                      //   right: 0,
-                      //   height: (width * (870 / 1080)),
-                      //   width: width,
-                      //   child: Image.asset('assets/images/add-user.png'),
-                      // ),
                     ],
                   ),
                   Container(
-                    margin: EdgeInsets.only(left: 20, right: 20),
+                      margin: EdgeInsets.only(left: 20, right: 20),
                       child: _textFieldWidget()),
                 ],
               ),
             ),
-            Positioned(top: 0 ,child: Image.asset('assets/images/overlay.png')),
+            Positioned(top: 0, height: 50,
+                child: Image.asset('assets/images/overlay.png')),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _saveButton()),
           ],
@@ -926,49 +920,3 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     );
   }
 }
-
-class Service {
-  Future<bool> addImage(Map<String, String> body, String filepath) async {
-    String addimageUrl = 'http://scm.womenindigital.net/api/form/post/images';
-    Map<String, String> headers = {
-      'Authorization': 'Bearer 46|qafBCK1cbfTXNI2XreNukjRsTIyOHCFd1Th85G6M',
-      'Content-Type': 'multipart/form-data',
-    };
-    var request = http.MultipartRequest('POST', Uri.parse(addimageUrl))
-      ..fields.addAll(body)
-      ..headers.addAll(headers)
-      ..files.add(await http.MultipartFile.fromPath('photo', filepath));
-    var response = await request.send();
-    print(response.statusCode);
-    if (response.statusCode == 201) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
-
-// DropdownButtonHideUnderline(
-// child: DropdownButton(
-// // Initial Value
-// // value: dropdownvalue,
-// // Down Arrow Icon
-// icon: const Icon(Icons.keyboard_arrow_down_rounded),
-// // Array list of items
-// items: gItems.map((String items) {
-// return DropdownMenuItem(
-// value: items,
-// child: Text(items),
-// );
-// }).toList(),
-// // After selecting the desired option,it will
-// // change button value to selected value
-// onChanged: (String? newValue) {
-// setState(() {
-// dropdownvalue = newValue!;
-// genderController.text = newValue;
-// //hintText = newValue!;
-// });
-// },
-// ),
-// ),

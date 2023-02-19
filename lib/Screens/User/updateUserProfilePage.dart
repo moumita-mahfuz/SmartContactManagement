@@ -1,161 +1,22 @@
-// import 'package:flutter/material.dart';
-// // import 'package:flutter/cupertino.dart'; Unused Dependency
-// import 'package:url_launcher/url_launcher.dart';
-//
-// // app build process is triggered here
-// void main() => runApp(const MyApp());
-//
-// _sendingMails() async {
-//   var url = Uri.parse("mailto:feedback@geeksforgeeks.org");
-//   if (await canLaunchUrl(url)) {
-//     await launchUrl(url);
-//   } else {
-//     throw 'Could not launch $url';
-//   }
-// }
-//
-// _sendingSMS() async {
-//   var url = Uri.parse("sms:966738292");
-//   if (await canLaunchUrl(url)) {
-//     await launchUrl(url);
-//   } else {
-//     throw 'Could not launch $url';
-//   }
-// }
-//
-// class MyApp extends StatelessWidget {
-//   const MyApp({Key? key}) : super(key: key);
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       home: Scaffold(
-//         appBar: AppBar(
-//           title: const Text('Geeks for Geeks'),
-//           backgroundColor: Colors.green,
-//         ),
-//         body: SafeArea(
-//           child: Center(
-//             child: Column(
-//               children: [
-//                 Container(
-//                   height: 200.0,
-//                 ),
-//                 const Text(
-//                   'Welcome to GFG!',
-//                   style: TextStyle(
-//                     fontSize: 35.0,
-//                     color: Colors.green,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 Container(
-//                   height: 20.0,
-//                 ),
-//                 const Text(
-//                   'For any Queries, Mail us',
-//                   style: TextStyle(
-//                     fontSize: 18.0,
-//                     color: Colors.green,
-//                     //fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 Container(
-//                   height: 10.0,
-//                 ),
-//                 ElevatedButton(
-//                   onPressed: _sendingMails,
-//                   style: ButtonStyle(
-//                     padding:
-//                     MaterialStateProperty.all(const EdgeInsets.all(5.0)),
-//                     textStyle: MaterialStateProperty.all(
-//                       const TextStyle(color: Colors.black),
-//                     ),
-//                   ),
-//                   child: const Text('Here'),
-//                 ), // ElevatedButton
-//
-//                 // DEPRECATED
-//                 // RaisedButton(
-//                 // onPressed: _sendingMails,
-//                 // child: Text('Here'),
-//                 // textColor: Colors.black,
-//                 // padding: const EdgeInsets.all(5.0),
-//                 // ),
-//                 Container(
-//                   height: 20.0,
-//                 ),
-//                 const Text(
-//                   'Or Send SMS',
-//                   style: TextStyle(
-//                     fontSize: 18.0,
-//                     color: Colors.green,
-//                     //fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 Container(
-//                   height: 10.0,
-//                 ),
-//                 ElevatedButton(
-//                   onPressed: _sendingSMS,
-//                   style: ButtonStyle(
-//                     padding:
-//                     MaterialStateProperty.all(const EdgeInsets.all(5.0)),
-//                     textStyle: MaterialStateProperty.all(
-//                       const TextStyle(color: Colors.black),
-//                     ),
-//                   ),
-//                   child: const Text('Here'),
-//                 ), // ElevatedButton
-//
-//                 // DEPRECATED
-//                 // RaisedButton(
-//                 // onPressed: _sendingSMS,
-//                 // textColor: Colors.black,
-//                 // padding: const EdgeInsets.all(5.0),
-//                 // child: Text('Here'),
-//                 // ), child: const Text('Here'),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-// ignore_for_file: public_member_api_docs
-
-import 'dart:convert';
 import 'dart:io';
-
-import 'package:community_app/Screens/Contact/singleContactDetailsPage.dart';
-import 'package:community_app/Screens/contactListPage.dart';
+import 'package:community_app/Screens/User/userProfile.dart';
+import 'package:http/http.dart' as http;
+import 'package:community_app/Model/contact.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import '../../Model/contact.dart';
-import '../../Widget/bezierContainer.dart';
-import '../../Widget/multiSelectDropDown.dart';
 
-class UpdateSingleContactDetailsPage extends StatefulWidget {
-  final Contact contact;
-  const UpdateSingleContactDetailsPage({Key? key, required this.contact})
-      : super(key: key);
+class UpdateUserProfilePage extends StatefulWidget {
+  Contact user;
+  UpdateUserProfilePage({Key? key, required this.user}) : super(key: key);
 
   @override
-  State<UpdateSingleContactDetailsPage> createState() =>
-      _UpdateSingleContactDetailsPageState();
+  State<UpdateUserProfilePage> createState() => _UpdateUserProfilePageState();
 }
 
-class _UpdateSingleContactDetailsPageState
-    extends State<UpdateSingleContactDetailsPage> {
+class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
   //name, designation, organization, connected_id, phone_no, email,
   // date_of_birth, gender, address, social_media, note, photo
   TextEditingController nameController = TextEditingController();
@@ -169,27 +30,13 @@ class _UpdateSingleContactDetailsPageState
   TextEditingController addressController = TextEditingController();
   TextEditingController socialMediaController = TextEditingController();
   TextEditingController noteController = TextEditingController();
-  // late String name;
-  // late String photo;
-  // late String phone_no;
-  // late String email;
-  // late String designation;
-  // late String organization;
-  // late String dob;
-  // late String gender;
-  // late String address;
-  // late String connections;
-  // late String socialLinks;
-  // late String note;
   String image = 'https://scm.womenindigital.net/storage/uploads/';
-
-  List<Contact> connectionsContact = [];
+  late String photo;
   // Initial Selected Value
   var _image;
   final picker = ImagePicker();
   late String dropdownvalue;
   FocusNode searchFocusNode = FocusNode();
-  List<String> _checkedItems = [];
   List<String> _mItems = [];
   bool readOnly = true;
   FocusNode f1 = FocusNode();
@@ -199,23 +46,16 @@ class _UpdateSingleContactDetailsPageState
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    //imagePicker = new ImagePicker();
-    //myController.addListener(_printLatestValue);
-    //nameController.addListener(() { })
-    dobController.text = ""; //set the initial value of text field
-    dropdownvalue = 'Male';
-
     valueInitialization();
-    getConnectionString();
-
   }
 
   void valueInitialization() {
-    if (widget.contact.name?.isEmpty ?? true) {
+    if (widget.user.name?.isEmpty ?? true) {
       nameController.text = "";
     } else {
-      nameController.text = widget.contact.name.toString();
+      nameController.text = widget.user.name.toString();
     }
     // if (widget.contact.photo?.isEmpty ?? true) {
     //   photo = "";
@@ -223,116 +63,71 @@ class _UpdateSingleContactDetailsPageState
     //   photo = widget.contact.photo.toString();
     // }
 
-    if (widget.contact.phone_no?.isEmpty ?? true) {
+    if (widget.user.phone_no?.isEmpty ?? true) {
       phoneController.text = "";
     } else {
-      phoneController.text = widget.contact.phone_no.toString();
+      phoneController.text = widget.user.phone_no.toString();
     }
 
-    if (widget.contact.email?.isEmpty ?? true) {
+    if (widget.user.email?.isEmpty ?? true) {
       emailController.text = "";
     } else {
-      emailController.text = widget.contact.email.toString();
+      emailController.text = widget.user.email.toString();
     }
 
-    if (widget.contact.designation?.isEmpty ?? true) {
+    if (widget.user.designation?.isEmpty ?? true) {
       designationController.text = "";
     } else {
-      designationController.text = widget.contact.designation.toString();
+      designationController.text = widget.user.designation.toString();
     }
 
-    if (widget.contact.organization?.isEmpty ?? true) {
+    if (widget.user.organization?.isEmpty ?? true) {
       organizationController.text = "";
     } else {
-      organizationController.text = widget.contact.organization.toString();
+      organizationController.text = widget.user.organization.toString();
     }
-
-
-
-    if (widget.contact.gender?.isEmpty ?? true) {
-      genderController.text = "";
+    if(widget.user.photo?.isEmpty ?? true) {
+      photo = "202302151206-profile-white.png";
     } else {
-      genderController.text = widget.contact.gender.toString();
+      photo = widget.user.photo.toString();
     }
 
-    if (widget.contact.address?.isEmpty ?? true) {
+
+    if (widget.user.gender?.isEmpty ?? true) {
+      dropdownvalue = 'Male';
+     //genderController.text = "";
+    } else {
+      genderController.text = widget.user.gender.toString();
+      dropdownvalue = widget.user.gender.toString();
+    }
+
+    if (widget.user.address?.isEmpty ?? true) {
       addressController.text = " ";
     } else {
-      addressController.text = widget.contact.address.toString();
+      addressController.text = widget.user.address.toString();
     }
 
-    if (widget.contact.social_media?.isEmpty ?? true) {
+    if (widget.user.social_media?.isEmpty ?? true) {
       socialMediaController.text = " ";
     } else {
-      socialMediaController.text = widget.contact.social_media.toString();
+      socialMediaController.text = widget.user.social_media.toString();
     }
 
-    if (widget.contact.note?.isEmpty ?? true) {
+    if (widget.user.note?.isEmpty ?? true) {
       noteController.text = " ";
     } else {
-      noteController.text = widget.contact.note.toString();
+      noteController.text = widget.user.note.toString();
     }
     // print('$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
     //     '$gender : $address : $connections : $socialLinks : $note');
   }
-
-  String getConnectionString() {
-    //Store Connection Contact in connectionsContact
-    getConnectionsContact(widget.contact.connected_id.toString());
-    print('Connection list: $connectionsContact');
-
-    // Store Connection name in mItems
-    getConnectionItemList(ContactListPage.contactList);
-    //connections = " ";
-    for (Contact x in connectionsContact) {
-      _checkedItems.add(x.name.toString());
-    }
-    return _checkedItems.toString();
-  }
-
-  getConnectionsContact(String connectionsArray) {
-    //String s= '[3,23,24,01,2]';
-    final temp = connectionsArray.split("[");
-    final temp0 = temp[1].split(']');
-    final contactIDs = temp0[0];
-    //print(contactIDs);
-    final list = contactIDs.split(', ');
-    for (Contact x in ContactListPage.contactList) {
-      //print("Name: " + x.name.toString() + x.id.toString());
-      if (list.contains(x.id.toString())) {
-        print("inside if Name: ${x.name}${x.id}");
-        connectionsContact.add(x);
-      }
-    }
-    print("connectionsContact: $connectionsContact");
-  }
-
-  // setTextFieldInit() {
-  //   nameController.text.toString() = widget.contact.name.toString();
-  //   designationController = TextEditingController();
-  //   organizationController = TextEditingController();
-  //   connectedController = TextEditingController();
-  //   phoneController = TextEditingController();
-  //   emailController = TextEditingController();
-  //   dobController = TextEditingController();
-  //   genderController = TextEditingController();
-  //   addressController = TextEditingController();
-  //   socialMediaController = TextEditingController();
-  //   noteController = TextEditingController();
-  // }
-
-  void getConnectionItemList(List<Contact> contactList) {
-    for (Contact x in contactList) {
-      _mItems.add(x.name.toString());
-    }
-  }
-
+  ///api/profile/update-profile
   Future<void> submitForm(String name,String designation,String organization,String connected_id,
       String phone_no,String email,String date_of_birth,String gender,String address,
       String social_media,String note) async {
     final prefs = await SharedPreferences.getInstance();
-    String id = widget.contact.id.toString();
-    var uriData = 'http://scm.womenindigital.net/api/connection/$id/update';
+    String id = widget.user.id.toString();
+    var uriData = 'http://scm.womenindigital.net/api/profile/update-profile';
 
     Map<String, String> headers = {
       "Accept": 'application/json',
@@ -342,7 +137,6 @@ class _UpdateSingleContactDetailsPageState
       'name': name,
       'designation': designation,
       'organization': organization,
-      'connected_id': getCheckedItemsID(_checkedItems).toString(),
       'phone_no': phone_no,
       'email': email,
       'date_of_birth': date_of_birth,
@@ -354,7 +148,7 @@ class _UpdateSingleContactDetailsPageState
     };
 
     if (kDebugMode) {
-      print("Body $name $designation $organization $_checkedItems"
+      print("Body $name $designation $organization "
           "$phone_no $email $date_of_birth $gender $address $social_media  $note"
           " ${prefs.getInt('loginID')}");
     }
@@ -388,12 +182,11 @@ class _UpdateSingleContactDetailsPageState
       Navigator.pop(context);
       print('info uploaded  ' + _getPhotoID(rawData).toString() + ".");
       Contact c = Contact(
-          id: widget.contact.id,
+          id: widget.user.id,
           name: name,
           photo: _getPhotoID(rawData),
           designation: designation,
           organization: organization,
-          connected_id: getCheckedItemsID(_checkedItems).toString(),
           phone_no: phone_no,
           email: email,
           date_of_birth: date_of_birth,
@@ -406,8 +199,8 @@ class _UpdateSingleContactDetailsPageState
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: ((context) => SingleContactDetailsPage(
-                contact: c,
+              builder: ((context) => UserProfilePage(
+                user: c,
               ))));
     } else {
       print('failed ${response.statusCode}');
@@ -444,24 +237,6 @@ class _UpdateSingleContactDetailsPageState
       print(photo);
     }
     return photo;
-  }
-
-  List<String> getCheckedItemsID(List<String> checkedItems) {
-    List<Contact> selectedContact = [];
-    List<String> selectedContactIds = [];
-    for (String s in checkedItems) {
-      for (int i = 0; i < ContactListPage.contactList.length; i++) {
-        if (ContactListPage.contactList[i].name != null) {
-          if (ContactListPage.contactList[i].name!.contains(s)) {
-            selectedContact.add(ContactListPage.contactList[i]);
-          }
-        }
-      }
-    }
-    for (Contact x in selectedContact) {
-      selectedContactIds.add(x.id.toString());
-    }
-    return selectedContactIds;
   }
 
   Widget _backButton() {
@@ -530,35 +305,6 @@ class _UpdateSingleContactDetailsPageState
       ),
 
     );
-  }
-
-  void _showMultiSelect() async {
-    // a list of selectable items
-    // these items can be hard-coded or dynamically fetched from a database/API
-    final List<String> items = ['1', '2', '3', '4', '5'];
-    final List<String>? results = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        if (_checkedItems.isEmpty == true) {
-          return MultiSelect(items: _mItems, checkedItems: _checkedItems);
-        } else {
-          for (int i = 0; i < _checkedItems.length; i++) {
-            if (_mItems.contains(_checkedItems[i])) {
-              _mItems.remove(_checkedItems[i]);
-            }
-          }
-          return MultiSelect(items: _mItems, checkedItems: _checkedItems);
-        }
-      },
-    );
-
-    // Update UI
-    if (results != null) {
-      setState(() {
-        _checkedItems = results;
-        print("connection with: $_checkedItems");
-      });
-    }
   }
 
   Future getImage(int status) async {
@@ -659,7 +405,7 @@ class _UpdateSingleContactDetailsPageState
                     height: height * (23 / 100),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(image+widget.contact.photo.toString(),fit: BoxFit.fitHeight,),
+                      child: Image.network(image + photo,fit: BoxFit.fitHeight,),
                     ),
                   ),
                 ),
@@ -798,45 +544,6 @@ class _UpdateSingleContactDetailsPageState
               focusNode: f1,
               onTap: () {}, //Clickable and not editable
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _connectionWithDropDown(String hintText, Icon icon) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        children: [
-          // display selected items
-          Wrap(
-            spacing: 5,
-            children: _checkedItems
-                .map((e) => Chip(
-              backgroundColor: Color(0xFF926AD3),
-              deleteIcon: Icon(Icons.close),
-              label: Text(e,style: TextStyle(color: Colors.white),),
-            ))
-                .toList(),
-          ),
-          TextField(
-
-            style: const TextStyle(color: Color(0xFF9A9A9A)),
-            //controller: dateController, //editing controller of this TextField
-            decoration: InputDecoration(
-                hintText: hintText,
-                prefixIcon: icon,
-                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-                ),
-                fillColor: Colors.transparent,
-                filled: true),
-            readOnly: true, //Clickable and not editable
-            onTap: () async {
-              _showMultiSelect();
-            },
           ),
         ],
       ),
@@ -1019,10 +726,6 @@ class _UpdateSingleContactDetailsPageState
           TextInputType.streetAddress,
           Icon(Icons.location_on_rounded),
         ),
-        _connectionWithDropDown(
-          "Connection With",
-          Icon(Icons.group),
-        ),
         _entryField(
           "Social Media Link",
           //socialLinks,
@@ -1079,7 +782,7 @@ class _UpdateSingleContactDetailsPageState
                 ],
               ),
             ),
-            Positioned(top: 0 ,child: Image.asset('assets/images/overlay.png')),
+            Positioned(top: 0 ,height: 50,child: Image.asset('assets/images/overlay.png')),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _updateButton()),
           ],
@@ -1088,60 +791,3 @@ class _UpdateSingleContactDetailsPageState
     );
   }
 }
-
-
-void main() => runApp(new MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return new MaterialApp(
-        home: new Scaffold(
-          appBar: new AppBar(title: const Text('Modal bottom sheet')),
-          body: Sheet(), // new Widget
-        ));
-  }
-}
-
-class Sheet extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    final width = MediaQuery.of(context).size.width;
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(height: height * (40 / 100),width: width ,color: Colors.deepOrange,),
-            ElevatedButton(
-                child: const Text('SHOW BOTTOM SHEET'),
-                onPressed: () {
-                  // Show sheet here
-                  showModalBottomSheet<void>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Container(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Text(
-                              'This is the modal bottom sheet. Click anywhere to dismiss.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: Theme.of(context).accentColor,
-                                  fontSize: 24.0),
-                            ),
-                          ),
-                        );
-                      });
-                }),
-            Container(height: height * (40 / 100),width: width ,color: Colors.deepOrange,),
-            Container(height: height * (40 / 100),width: width ,color: Colors.blue,),
-            Container(height: height * (40 / 100),width: width ,color: Colors.black12,),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-

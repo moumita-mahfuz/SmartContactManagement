@@ -433,12 +433,19 @@ class _ContactListPageState extends State<ContactListPage> {
               backgroundColor: Colors.white,
               foregroundColor: const Color(0xFF926AD3),
               onPressed: () {
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (context) => NewContactAddPage(
+                //               contactList: ContactListPage.contactList,
+                //             )));
+
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => NewContactAddPage(
-                              contactList: ContactListPage.contactList,
-                            )));
+                          contactList: ContactListPage.contactList,
+                        )));
               },
               child: const Icon(Icons.person_add_alt_1_rounded),
             )
