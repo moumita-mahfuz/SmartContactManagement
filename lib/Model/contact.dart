@@ -16,7 +16,18 @@
 // "social_media": "social media",
 // "note": "note",
 // "created_by": "6"
-
+// 'name',
+// 'designation',
+// 'organization',
+// 'phone_no',
+// 'email',
+// 'date_of_birth',
+// 'gender',
+// 'address',
+// 'social_media',
+// 'profile_photo',
+// 'note',
+// 'password',
 
 class Contact {
   Contact ({

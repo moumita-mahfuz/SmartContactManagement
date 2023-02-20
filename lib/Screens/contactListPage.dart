@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:community_app/Screens/Auth/settingsPage.dart';
 import 'package:community_app/Screens/User/userProfile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:http/http.dart';
 import 'package:mailto/mailto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../Model/User.dart';
 import '../Model/contact.dart';
 import '../Widget/bezierContainer.dart';
 import 'Auth/loginPage.dart';
@@ -18,7 +20,7 @@ import 'Contact/newContactAddPage.dart';
 class ContactListPage extends StatefulWidget {
   final String token;
   static List<Contact> contactList = [];
-  static List<Contact> c = [];
+  static List<User> user = [];
   const ContactListPage({Key? key, required this.token}) : super(key: key);
   @override
   State<ContactListPage> createState() => _ContactListPageState();
@@ -474,7 +476,7 @@ class _ContactListPageState extends State<ContactListPage> {
         //   //tempList.add(Contact.fromJson(i));
         //   ContactListPage.contactList.add(Contact.fromJson(i));
         // }
-        ContactListPage.c.add(Contact.fromJson(i));
+        ContactListPage.user.add(User.fromJson(i));
       }
     } else {}
   }
@@ -594,12 +596,16 @@ class _ContactListPageState extends State<ContactListPage> {
                       context,
                       MaterialPageRoute(
                           builder: ((context) => UserProfilePage(
-                                user: ContactListPage.c[0],
+                                user: ContactListPage.user[0],
                               ))));
                 } else if (value == 1) {
                   if (kDebugMode) {
                     print("Settings menu is selected.");
                   }
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: ((context) => SettingPage())));
                 } else if (value == 2) {
                   // final prefs = await SharedPreferences.getInstance();
                   // prefs.setBool('isLoggedIn',false);

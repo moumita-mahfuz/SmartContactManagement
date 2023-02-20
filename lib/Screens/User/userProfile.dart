@@ -10,12 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Model/User.dart';
 import '../../Model/contact.dart';
 import '../Auth/loginPage.dart';
 
 
 class UserProfilePage extends StatefulWidget {
-  Contact user;
+  User user;
   UserProfilePage({Key? key, required this.user})
       : super(key: key);
 
@@ -35,12 +36,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late String address = "";
   late String connections = "";
   late String socialLinks = "";
+  late String photo = "";
   late String note = "";
-  bool _loaded = false;
   List<Contact> connectionsContact = [];
   // var img = Image.network(src);
   // var placeholder = AssetImage(assetName)
-  String image = 'https://scm.womenindigital.net/storage/uploads/';
+  ///storage/profile_photo
+  String image = 'https://scm.womenindigital.net/storage/profile_photo/';
 
 
   @override
@@ -52,6 +54,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void valueInitialization() {
+    print ('$widget.user.photo  $widget.user.email');
     if (widget.user.name?.isEmpty ?? true) {
       name = "";
     } else {
@@ -82,18 +85,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       organization = widget.user.organization.toString();
     }
 
-    if (widget.user.connected_id?.isEmpty ?? true) {
-      connections = " ";
-    } else {
-      getConnectionsId(widget.user.connected_id.toString());
-      // print('Connection list: $connectionsContact');
-      connections = " ";
-      for (Contact x in connectionsContact) {
-        connections = "$connections${x.name} ";
-        //print(connections);
-      }
-    }
-
     if (widget.user.date_of_birth?.isEmpty ?? true) {
       dob = " ";
     } else {
@@ -103,7 +94,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final year = temp[0];
       final month = getMonth(temp[1]);
       final date = temp[2];
-      dob = '$date $month, $year';
+      dob = '$date $month';
     }
 
     if (widget.user.gender?.isEmpty ?? true) {
@@ -129,6 +120,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } else {
       note = widget.user.note.toString();
     }
+
     print('$name : $phone_no : $email : $designation : $organization : $dob :'
         '$gender : $address : $connections : $socialLinks : $note');
   }
@@ -322,27 +314,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
       print("VALUE CONTROLLER  " + value +" "+ controller.text.toString());
     }
     //TextEditingController controllerTitle,
-    return Container(
-      //margin: EdgeInsets.symmetric(vertical: 1),
-      // decoration: BoxDecoration(
-      //   borderRadius: BorderRadius.circular(6.0),
-      // ),
-
-      child: TextField(
-        //enabled: false, //Not clickable and not editable
-        readOnly: true,
-        enabled: false,
-        controller: controller,
-        style: TextStyle(color: Color(0xFF926AD3)),
-        decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: icon,
-            //suffixIcon: Icon(Icons.),
-            border: InputBorder.none,
-            fillColor: Colors.transparent,
-            //fillColor: Colors.transparent,
-            filled: true),
-      ),
+    return TextField(
+      //enabled: false, //Not clickable and not editable
+      readOnly: true,
+      enabled: false,
+      controller: controller,
+      maxLines: 4,
+      minLines: 1,
+      style: TextStyle(color: Color(0xFF926AD3)),
+      decoration: InputDecoration(
+          hintText: hintText,
+          prefixIcon: icon,
+          //suffixIcon: Icon(Icons.),
+          border: InputBorder.none,
+          fillColor: Colors.transparent,
+          //fillColor: Colors.transparent,
+          filled: true),
     );
   }
 
@@ -417,45 +404,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
                   ),
                   //color: Colors.red,
-                  child: _loaded ? Image.network(
+                  child: Image.network(
                     image + widget.user.photo.toString(),
-                    fit: BoxFit.fitWidth,
-                  ): Image.asset('assets/images/profile-white.png'),
+                    fit: BoxFit.fitHeight,
+                  ),
                 )),
             //Image shadow
-            Positioned(top: 0, right: 0, width: width,
-              child: Image.asset('assets/images/overlay.png'),
-            ),
             Positioned(
                 top: 0,
-                right: 0,
-                child: Container(
-                  height: (width * (870 / 1080)),
-                  width: width,
-                  decoration: BoxDecoration(
-
-                    // color: Colors.deepOrange,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(100),
-                      bottomRight: Radius.circular(100),
-
-                    ),
-                    // border: Border.all(
-                    //   width: 3,
-                    //   color: Colors.green,
-                    //   style: BorderStyle.solid,
-                    // ),
-                  ),
-                  //color: Colors.red,
-
-                  //bool _loaded = false;
-                  //   var img = Image.network(src);
-                  //   var placeholder = AssetImage(assetName)
-                  //child: _loaded ? img : placeholder,
-                  child: _loaded ? Image.network(
-                    image + widget.user.photo.toString(),
-                    fit: BoxFit.fitWidth,
-                  ): Image.asset('assets/images/profile-white.png'),
+                height: (width * (300 / 1080)),
+                width: width,
+                child: Image.asset(
+                  'assets/images/overlay.png',
+                  fit: BoxFit.fitWidth,
                 )),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _topRightButtons()),

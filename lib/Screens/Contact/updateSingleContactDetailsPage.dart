@@ -109,6 +109,11 @@ class _UpdateSingleContactDetailsPageState
     } else {
       designationController.text = widget.contact.designation.toString();
     }
+    if(widget.contact.date_of_birth?.isEmpty ?? true) {
+      //dobController.text = "";
+    } else {
+      dobController.text = widget.contact.date_of_birth.toString();
+    }
 
     if (widget.contact.organization?.isEmpty ?? true) {
       organizationController.text = "";
@@ -937,7 +942,7 @@ class _UpdateSingleContactDetailsPageState
                 ],
               ),
             ),
-            Positioned(top: 0 ,height: 50,child: Image.asset('assets/images/overlay.png')),
+            Positioned(top: 0 ,height: (width * (300 / 1080)),width: width,child: Image.asset('assets/images/overlay.png', fit: BoxFit.fitWidth,)),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _updateButton()),
           ],

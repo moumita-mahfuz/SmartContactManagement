@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:community_app/Screens/User/userProfile.dart';
 import 'package:http/http.dart' as http;
@@ -8,8 +9,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../Model/User.dart';
+
 class UpdateUserProfilePage extends StatefulWidget {
-  Contact user;
+  User user;
   UpdateUserProfilePage({Key? key, required this.user}) : super(key: key);
 
   @override
@@ -30,7 +33,8 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
   TextEditingController addressController = TextEditingController();
   TextEditingController socialMediaController = TextEditingController();
   TextEditingController noteController = TextEditingController();
-  String image = 'https://scm.womenindigital.net/storage/uploads/';
+  ///storage/profile_photo
+  String image = 'https://scm.womenindigital.net/storage/profile_photo/';
   late String photo;
   // Initial Selected Value
   var _image;
@@ -43,6 +47,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
   bool showSpinner = false;
   bool isLoading = false;
   bool _validate = false;
+  late List<User> person = [];
 
   @override
   void initState() {
@@ -86,6 +91,13 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     } else {
       organizationController.text = widget.user.organization.toString();
     }
+
+    if(widget.user.date_of_birth?.isEmpty ?? true) {
+      //dobController.text = "";
+    } else {
+      dobController.text = widget.user.date_of_birth.toString();
+    }
+
     if(widget.user.photo?.isEmpty ?? true) {
       photo = "202302151206-profile-white.png";
     } else {
@@ -127,8 +139,10 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       String social_media,String note) async {
     final prefs = await SharedPreferences.getInstance();
     String id = widget.user.id.toString();
-    var uriData = 'http://scm.womenindigital.net/api/profile/update-profile';
-
+    ///api/profile/3/update-profile
+    var uriData = 'http://scm.womenindigital.net/api/profile/$id/update-profile';
+    ///api/profile/3/update-images
+    var uriPhoto = 'http://scm.womenindigital.net/api/profile/$id/update-profile';
     Map<String, String> headers = {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
@@ -155,24 +169,42 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     // name, designation, organization, connected_id, phone_no, email,
     // date_of_birth, gender, address, social_media, note, photo
     //http://scm.womenindigital.net/api/connection/19/update
-
-    var request = http.MultipartRequest('POST', Uri.parse(uriData));
-    if (kDebugMode) {
-      print("IMAGE $_image " );
-    }
-    if (_image != null ) {
-      //File f = await getImageFileFromAssets('images/profile.png');
-      request.headers.addAll(headers);
-      request.fields.addAll(body);
-      request.files
+    var req;
+    print("IMAGE $_image " );
+    if(_image != null){
+      print("IF");
+      req = http.MultipartRequest('Post', Uri.parse(uriData));
+      req.headers.addAll(headers);
+      req.fields.addAll(body);
+      req.files
           .add(await http.MultipartFile.fromPath('photo', _image.path));
-    } else {
-      // File f = await getImageFileFromAssets('images/profile-white.png');
-      request.headers.addAll(headers);
-      request.fields.addAll(body);
-      //request.files.add(await http.MultipartFile.fromPath('photo', f.path));
     }
-    var streamedResponse = await request.send();
+    else {
+      print("ELSE");
+      req = http.MultipartRequest('Post', Uri.parse(uriData));
+      req.headers.addAll(headers);
+      req.fields.addAll(body);
+    }
+
+    // var request = http.MultipartRequest('POST', Uri.parse(uriData));
+    // request.headers.addAll(headers);
+    // request.fields.addAll(body);
+    // if (kDebugMode) {
+    //   print("IMAGE $_image " );
+    // }
+    //
+    // if (_image != null ) {
+    //   //File f = await getImageFileFromAssets('images/profile.png');
+    //   request.files
+    //       .add(await http.MultipartFile.fromPath('photo', _image.path));
+    // } else {
+    //   // File f = await getImageFileFromAssets('images/profile-white.png');
+    //   request.headers.addAll(headers);
+    //   request.fields.addAll(body);
+    //   //request.files.add(await http.MultipartFile.fromPath('photo', f.path));
+    // }
+    var streamedResponse = await req.send();
+    print(streamedResponse.statusCode);
     print("STREAM "+streamedResponse.stream.toString());
     var response = await http.Response.fromStream(streamedResponse);
     print(response.body.toString());
@@ -180,49 +212,53 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     print ("RAW DATA " + rawData);
     if (streamedResponse.statusCode == 200) {
       Navigator.pop(context);
-      print('info uploaded  ' + _getPhotoID(rawData).toString() + ".");
-      Contact c = Contact(
-          id: widget.user.id,
-          name: name,
-          photo: _getPhotoID(rawData),
-          designation: designation,
-          organization: organization,
-          phone_no: phone_no,
-          email: email,
-          date_of_birth: date_of_birth,
-          gender: gender,
-          address: address,
-          social_media: social_media,
-          note: note,
-          created_by: prefs.getInt('loginID'));
+      getUserDetailsApi();
 
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: ((context) => UserProfilePage(
-                user: c,
-              ))));
     } else {
       print('failed ${response.statusCode}');
     }
-    // try {
-    //
-    // } catch (e) {
-    //   print('failed');
-    //   setState(() {
-    //     showSpinner = false;
-    //   });
-    // }
 
-    // String rawDetails =" { message : Ok , data :{ id :13, created_at :null, updated_at :null, name : test 12 , designation :null, organization :null, connected_id : [] , phone_no :null, email :null, date_of_birth :null, gender :null, address :null, social_media :null, note :null, photo : 202302161059-FB_IMG_1676264759097.jpg , created_by : 5 }}";
-    // final value = rawDetails.split('data :');
-    // String details = value[1].replaceAll(RegExp('[^A-Za-z0-9,:._@ -+]'), '');
-    // print("DETAILS "+ details.toString());
-    // final res = details.split(', ');
-    // print(res[14]);
-    // final photoString = res[14].split(': ');
-    // print(photoString[1]);
   }
+
+  Future<void> getUserDetailsApi() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    ///api/user/10/show
+    String url =
+        'http://scm.womenindigital.net/api/user/${prefs.getInt('loginID')}/show';
+
+    final response = await http.get(Uri.parse(url), headers: {
+      "Accept": 'application/json',
+      'Authorization': 'Bearer ${prefs.getString('token')}'
+    });
+    var data = jsonDecode(response.body.toString());
+    print("${response.statusCode} $data");
+    if (response.statusCode == 200) {
+      for (Map i in data) {
+        print("name " + i['name']);
+        //bool status = isPresent(i['name']);
+        // if(status== false) {
+        //   //tempList.add(Contact.fromJson(i));
+        //   ContactListPage.contactList.add(Contact.fromJson(i));
+        // }
+        person.add(User.fromJson(i));
+        // for (User x in person) {
+        //   print(x.name);
+        //
+        // }
+      }
+      print (person.length);
+      for(int i =0 ; i< person.length ; i++){
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: ((context) => UserProfilePage(user: person[i]))));
+      }
+
+    }
+  }
+
+
   String _getPhotoID(String rawDetails) {
     final value = rawDetails.split('data :');
     String details = value[1].replaceAll(RegExp('[^-A-Za-z0-9,:._@ +]'), '');
@@ -607,67 +643,53 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       {bool isPassword = false}) {
     controller.selection =
         TextSelection.collapsed(offset: controller.text.length);
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: TextField(
-        //enabled: false, //Not clickable and not editable
-        keyboardType: inputType,
-        textInputAction: TextInputAction.next,
-        textCapitalization: type,
-        controller: controller,
-        obscureText: isPassword,
-        style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
-        decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: icon,
-            //suffixIcon: Icon(Icons.),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-            ),
-            fillColor: Colors.transparent,
-            filled: true),
-      ),
-    );
-    // if(hintText == 'Name') {
-    //   if (value != " ") {
-    //     controller.text = value;
-    //     controller.selection =
-    //         TextSelection.collapsed(offset: controller.text.length);
-    //   }
-    //   //TextEditingController controllerTitle,
-    //   return Container(
-    //     margin: EdgeInsets.symmetric(vertical: 10),
-    //     child: TextField(
-    //       //enabled: false, //Not clickable and not editable
-    //       keyboardType: inputType,
-    //       textInputAction: TextInputAction.next,
-    //       textCapitalization: type,
-    //       controller: controller,
-    //       obscureText: isPassword,
-    //       style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
-    //       decoration: InputDecoration(
-    //           hintText: hintText,
-    //           prefixIcon: icon,
-    //           errorText: _validate ? 'Name Can\'t Be Empty' : null,
-    //
-    //           //suffixIcon: Icon(Icons.),
-    //           enabledBorder: const UnderlineInputBorder(
-    //             borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-    //           ),
-    //           fillColor: Colors.transparent,
-    //           filled: true),
-    //     ),
-    //   );
-    //
-    // }
-    // else {
-    //   if (value != " ") {
-    //     //controller.text = value;
-    //
-    //   }
-    //   //TextEditingController controllerTitle,
-    //
-    // }
+    if (hintText == 'Email'){
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: TextField(
+          //enabled: false, //Not clickable and not editable
+          keyboardType: inputType,
+          textInputAction: TextInputAction.next,
+          readOnly: true,
+          enabled: true,
+          textCapitalization: type,
+          controller: controller,
+          obscureText: isPassword,
+          style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
+          decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: icon,
+              //suffixIcon: Icon(Icons.),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+              ),
+              fillColor: Colors.transparent,
+              filled: true),
+        ),
+      );
+    } else {
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: TextField(
+          //enabled: false, //Not clickable and not editable
+          keyboardType: inputType,
+          textInputAction: TextInputAction.next,
+          textCapitalization: type,
+          controller: controller,
+          obscureText: isPassword,
+          style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
+          decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: icon,
+              //suffixIcon: Icon(Icons.),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+              ),
+              fillColor: Colors.transparent,
+              filled: true),
+        ),
+      );
+    }
 
   }
 
@@ -782,7 +804,14 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
                 ],
               ),
             ),
-            Positioned(top: 0 ,height: 50,child: Image.asset('assets/images/overlay.png')),
+            Positioned(
+                top: 0,
+                height: (width * (300 / 1080)),
+                width: width,
+                child: Image.asset(
+                  'assets/images/overlay.png',
+                  fit: BoxFit.fitWidth,
+                )),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _updateButton()),
           ],

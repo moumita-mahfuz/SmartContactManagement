@@ -76,6 +76,7 @@ flutter:
      - assets/images/add-user.png
      - assets/images/profile-white.png
      - assets/images/camera-fill.png
+     - assets/images/logo.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

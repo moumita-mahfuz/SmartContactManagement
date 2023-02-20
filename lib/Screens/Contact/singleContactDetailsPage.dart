@@ -368,7 +368,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                     context,
                     MaterialPageRoute(
                         builder: ((context) => UserProfilePage(
-                              user: ContactListPage.c[0],
+                              user: ContactListPage.user[0],
                             ))));
               } else if (value == 1) {
                 if (kDebugMode) {
@@ -456,21 +456,21 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
           ),
           //CALL
           InkWell(
-            onTap:
-                (_hasCallSupport && (widget.contact.phone_no?.isNotEmpty ?? false))
-                    ? () => setState(() {
-                          _launched = _makePhoneCall(widget.contact.phone_no!);
-                        })
-                    : ()=> setState(() {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    backgroundColor: Color(0xFF926AD3),
-                    content: Text(
-                      "Phone number is not saved!",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    duration: Duration(milliseconds: 1000),
-                  ));
-                }),
+            onTap: (_hasCallSupport &&
+                    (widget.contact.phone_no?.isNotEmpty ?? false))
+                ? () => setState(() {
+                      _launched = _makePhoneCall(widget.contact.phone_no!);
+                    })
+                : () => setState(() {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        backgroundColor: Color(0xFF926AD3),
+                        content: Text(
+                          "Phone number is not saved!",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        duration: Duration(milliseconds: 1000),
+                      ));
+                    }),
             child: Icon(
               Icons.call,
               color: Colors.white,
@@ -556,28 +556,23 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
       controller.text = value;
     }
     //TextEditingController controllerTitle,
-    return Container(
-      // margin: EdgeInsets.symmetric(vertical: 1),
-      // decoration: BoxDecoration(
-      //   borderRadius: BorderRadius.circular(6.0),
-      // ),
-
-      child: TextField(
-        //enabled: false, //Not clickable and not editable
-        readOnly: true,
-        enabled: false,
-        controller: controller,
-        style: TextStyle(color: Color(0xFF926AD3)),
-        decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: icon,
-            //suffixIcon: Icon(Icons.),
-            // border: InputBorder.none,
-            border: InputBorder.none,
-            //fillColor: Color(0xfff3f3f4),
-            fillColor: Colors.transparent,
-            filled: true),
-      ),
+    return TextField(
+      //enabled: false, //Not clickable and not editable
+      readOnly: true,
+      enabled: false,
+      controller: controller,
+      maxLines: 4,
+      minLines: 1,
+      style: TextStyle(color: Color(0xFF926AD3)),
+      decoration: InputDecoration(
+          hintText: hintText,
+          prefixIcon: icon,
+          //suffixIcon: Icon(Icons.),
+          // border: InputBorder.none,
+          border: InputBorder.none,
+          //fillColor: Color(0xfff3f3f4),
+          fillColor: Colors.transparent,
+          filled: true),
     );
   }
 
@@ -660,11 +655,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   ),
                 )),
             Positioned(
-              top: 0,
-              right: 0,
-              width: width,
-              child: Image.asset('assets/images/overlay.png'),
-            ),
+                top: 0,
+                height: (width * (300 / 1080)),
+                width: width,
+                child: Image.asset(
+                  'assets/images/overlay.png',
+                  fit: BoxFit.fitWidth,
+                )),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _topRightButtons()),
             Positioned(

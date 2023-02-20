@@ -388,10 +388,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
     // MediaQuery.of(context).
-    debugPrint(MediaQuery.of(context).devicePixelRatio.toString());
-    debugPrint(MediaQuery.of(context).size.height.toString());
-    debugPrint(MediaQuery.of(context).size.width.toString());
+    // debugPrint(MediaQuery.of(context).devicePixelRatio.toString());
+    // debugPrint(MediaQuery.of(context).size.height.toString());
+    // debugPrint(MediaQuery.of(context).size.width.toString());
     return Scaffold(
         body: Container(
       height: height,
