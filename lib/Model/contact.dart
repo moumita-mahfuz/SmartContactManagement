@@ -45,6 +45,7 @@ class Contact {
     String? note,
     String? photo,
     int? created_by,
+    String? status,
     String? created_at,
     String? updated_at,}) {
     _id = id;
@@ -61,6 +62,7 @@ class Contact {
     _note = note;
     _photo = photo;
     _created_by = created_by;
+    _status = status;
     _created_at = created_at;
     _updated_at = updated_at;
   }
@@ -81,6 +83,7 @@ class Contact {
     _note = json['note'];
     _photo = json['photo'];
     _created_by = json['created_by'];
+    _status = json['status'];
     // _created_at = json['created_at'];
     // _updated_at = json['updated_at'];
   }
@@ -97,6 +100,7 @@ class Contact {
   String? _social_media;
   String? _note;
   int? _created_by;
+  String? _status;
   String? _photo;
   String? _created_at;
   String? _updated_at;
@@ -115,6 +119,7 @@ class Contact {
   String? get note => _note;
   String? get photo => _photo;
   int? get created_by => _created_by;
+  String? get status => _status;
   String? get created_at => _created_at;
   String? get updated_at => _updated_at;
 
@@ -134,11 +139,9 @@ class Contact {
     map['note'] = _note;
     map['photo'] = _photo;
     map['created_by'] = _created_by;
+    map['status'] = _status;
     map['updated_at'] = _updated_at;
     map['created_at'] = _created_at;
     return map;
   }
-
-
-
 }

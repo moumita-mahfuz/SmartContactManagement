@@ -53,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
         prefs.setBool('isLoggedIn', true);
         prefs.setString('token', data['token']);
         prefs.setInt('loginID', data['data']['id']);
+        prefs.setString('login-pass', password);
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -74,6 +75,14 @@ class _LoginPageState extends State<LoginPage> {
         ));
       }
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Color(0xFF926AD3),
+        content: Text(
+          '$e!',
+          style: TextStyle(fontSize: 14),
+        ),
+        duration: Duration(milliseconds: 2000),
+      ));
       print(e.toString());
     }
   }

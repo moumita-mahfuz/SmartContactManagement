@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:community_app/Screens/User/userProfile.dart';
+import 'package:community_app/Screens/User/userProfilePage.dart';
 import 'package:http/http.dart' as http;
 import 'package:community_app/Model/contact.dart';
 import 'package:flutter/foundation.dart';
@@ -134,16 +134,15 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     //     '$gender : $address : $connections : $socialLinks : $note');
   }
   ///api/profile/update-profile
-  Future<void> submitForm(String name,String designation,String organization,String connected_id,
+  Future<void> submitForm(String name,String designation,String organization,
       String phone_no,String email,String date_of_birth,String gender,String address,
       String social_media,String note) async {
     final prefs = await SharedPreferences.getInstance();
     String id = widget.user.id.toString();
+    print(id);
     ///api/profile/3/update-profile
     var uriData = 'http://scm.womenindigital.net/api/profile/$id/update-profile';
-    ///api/profile/3/update-images
-    var uriPhoto = 'http://scm.womenindigital.net/api/profile/$id/update-profile';
-    Map<String, String> headers = {
+   Map<String, String> headers = {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
     };
@@ -158,7 +157,6 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       'address': address,
       'social_media': social_media,
       'note': note,
-      'created_by': prefs.getInt('loginID').toString()
     };
 
     if (kDebugMode) {
@@ -169,11 +167,10 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     // name, designation, organization, connected_id, phone_no, email,
     // date_of_birth, gender, address, social_media, note, photo
     //http://scm.womenindigital.net/api/connection/19/update
-    var req;
+    var req = http.MultipartRequest('Post', Uri.parse(uriData));
     print("IMAGE $_image " );
     if(_image != null){
       print("IF");
-      req = http.MultipartRequest('Post', Uri.parse(uriData));
       req.headers.addAll(headers);
       req.fields.addAll(body);
       req.files
@@ -181,7 +178,6 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     }
     else {
       print("ELSE");
-      req = http.MultipartRequest('Post', Uri.parse(uriData));
       req.headers.addAll(headers);
       req.fields.addAll(body);
     }
@@ -204,15 +200,32 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     //   //request.files.add(await http.MultipartFile.fromPath('photo', f.path));
     // }
     var streamedResponse = await req.send();
-    print(streamedResponse.statusCode);
-    print("STREAM "+streamedResponse.stream.toString());
+    //print(streamedResponse.statusCode);
+    //print("STREAM "+streamedResponse.stream.toString());
     var response = await http.Response.fromStream(streamedResponse);
-    print(response.body.toString());
+    //print(response.body.toString());
     String rawData = response.body.toString().replaceAll("\"", ' ');
     print ("RAW DATA " + rawData);
     if (streamedResponse.statusCode == 200) {
       Navigator.pop(context);
-      getUserDetailsApi();
+      User user = User (
+        id: widget.user.id,
+        name: name,
+        photo: _getPhotoID(rawData),
+        designation : designation, 
+        organization : organization,
+        phone_no : phone_no,
+        email : email,
+        date_of_birth : date_of_birth,
+        gender : gender,
+        address : address,
+        social_media : social_media,
+        note : note,
+      );
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: ((context) => UserProfilePage(user: user))));
 
     } else {
       print('failed ${response.statusCode}');
@@ -264,11 +277,12 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     String details = value[1].replaceAll(RegExp('[^-A-Za-z0-9,:._@ +]'), '');
     final res = details.split(', ');
     if (kDebugMode) {
-      print(res[14]);
+      print(res[3]);
     }
-    final photoString = res[14].split(': ');
+    final photoString = res[3].split(': ');
     print("PHOTO STRING: "+ photoString[1].toString());
     String photo = photoString[1].replaceAll(" ", '');
+   
     if (kDebugMode) {
       print(photo);
     }
@@ -313,7 +327,6 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
               nameController.text.toString(),
               designationController.text.toString(),
               organizationController.text.toString(),
-              connectedController.text.toString(),
               phoneController.text.toString(),
               emailController.text.toString(),
               dobController.text.toString(),

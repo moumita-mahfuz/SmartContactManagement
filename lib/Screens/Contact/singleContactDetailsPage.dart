@@ -2,8 +2,6 @@ import 'dart:convert';
 
 import 'package:community_app/Screens/Contact/updateSingleContactDetailsPage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
-import 'package:community_app/Screens/contactListPage.dart';
-import 'package:community_app/Screens/User/userProfile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Model/contact.dart';
 import '../Auth/loginPage.dart';
+import '../User/userProfilePage.dart';
 
 class SingleContactDetailsPage extends StatefulWidget {
   final Contact contact;
@@ -41,6 +40,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   List<Contact> connectionsContact = [];
   String image = 'https://scm.womenindigital.net/storage/uploads/';
   bool _hasCallSupport = false;
+  bool _isFav = false;
   Future<void>? _launched;
 
   //https://scm.womenindigital.net/storage/uploads/202302120406-Twitter-logo-png.png
@@ -389,7 +389,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   }
 
   _sendingSMS(String phone) async {
-    var url = Uri.parse(phone);
+    Uri url = Uri.parse('sms:$phone');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
@@ -405,17 +405,47 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     await launchUrl(launchUri);
   }
 
+  _snackBar(String massage) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Color(0xFF926AD3),
+      content: Text(
+       massage,
+        style: TextStyle(fontSize: 14),
+      ),
+      duration: Duration(milliseconds: 1500),
+    ));
+  }
+
   Widget _bottomCenterOptions() {
     return Center(
       child: Row(
         children: [
           //FAVOURITE
           InkWell(
-              onTap: () {},
-              child: const Icon(
-                Icons.star_border_rounded,
-                color: Colors.white,
-              )),
+              onTap: () {
+                if (_isFav == true) {
+                  print(_isFav);
+                  _snackBar( "Removed from Favorites!");
+                } else {
+                  print(_isFav);
+                  _snackBar("Added to Favorites!");
+                }
+                setState(
+                  () {
+                    _isFav = !_isFav;
+                  },
+                );
+              },
+              child: (_isFav)
+                  ? Icon(
+                      Icons.star_rate_rounded,
+                      color: Colors.white,
+                    )
+                  : Icon(
+                      Icons.star_border_rounded,
+                      color: Colors.white,
+                    )),
+
           const SizedBox(
             width: 15,
           ),
@@ -622,6 +652,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    print("in BUILD " + _isFav.toString());
     return Scaffold(
       body: Container(
         height: height,
@@ -652,7 +683,25 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   child: Image.network(
                     image + photo,
                     fit: BoxFit.fitHeight,
+                    loadingBuilder: (BuildContext context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, url, error) => Icon(Icons.error),
                   ),
+
+                  // Image.network(
+                  //   image + photo,
+                  //   fit: BoxFit.fitHeight,
+                  // ),
                 )),
             Positioned(
                 top: 0,

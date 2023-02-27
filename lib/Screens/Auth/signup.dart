@@ -27,7 +27,8 @@ class _SignUpPageState extends State<SignUpPage> {
     int x = 0;
     try {
       Response response = await post(
-          Uri.parse('http://scm.womenindigital.net/api/auth/register'),
+        ///api/auth/registration
+          Uri.parse('http://scm.womenindigital.net/api/auth/registration'),
           headers: {
             "Accept": 'application/json',
           },
@@ -39,6 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
             'confirm_password': password,
             'is_verified': x.toString()
           });
+      print(response.statusCode);
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body.toString());
@@ -65,6 +67,14 @@ class _SignUpPageState extends State<SignUpPage> {
         print('failed' + response.statusCode.toString());
       }
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Color(0xFF926AD3),
+        content: Text(
+          '$e!',
+          style: TextStyle(fontSize: 14),
+        ),
+        duration: Duration(milliseconds: 2000),
+      ));
       print(e.toString());
     }
   }
