@@ -6,6 +6,7 @@ import 'package:community_app/Screens/contactListPage.dart';
 import 'package:community_app/Screens/Contact/updateSingleContactDetailsPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -17,7 +18,8 @@ import '../Auth/settingsPage.dart';
 
 class UserProfilePage extends StatefulWidget {
   User user;
-  UserProfilePage({Key? key, required this.user}) : super(key: key);
+  final bool isChanged;
+  UserProfilePage({Key? key, required this.user, required this.isChanged}) : super(key: key);
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -59,7 +61,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (widget.user.phone_no?.isEmpty ?? true) {
       phone_no = " ";
     } else {
-      phone_no = widget.user.phone_no.toString();
+      phone_no = widget.user.phone_no.toString().replaceAll(RegExp('[^0-9+]'), '');
     }
     if (widget.user.photo?.isEmpty ?? true) {
       photo = '202302160552-profile-white.png';
@@ -172,7 +174,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
       children: [
         InkWell(
           onTap: () {
-            Navigator.pop(context);
+            if(widget.isChanged) {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) => ContactListPage(
+                        token: ContactListPage.barerToken,
+                      ))));
+            } else {
+              Navigator.pop(context);
+            }
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20, 15, 0, 0),
@@ -288,7 +300,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final prefs = await SharedPreferences.getInstance();
       print('Bearer ${prefs.getString('token')}');
       Response response = await post(
-        Uri.parse('http://scm.womenindigital.net/api/auth/logout'),
+        Uri.parse('https://scm.womenindigital.net/api/auth/logout'),
         headers: {'Authorization': 'Bearer ${prefs.getString('token')}'},
       );
 
@@ -400,35 +412,38 @@ class _UserProfilePageState extends State<UserProfilePage> {
             Positioned(
                 top: 0,
                 right: 0,
-                child: Container(
-                  height: (width * (870 / 1080)),
-                  width: width,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF926AD3),
-                  ),
+                child: ClipPath(
+                  clipper: OvalBottomBorderClipper(),
+                  child: Container(
+                    height: (width * (870 / 1080)) + 10,
+                    width: width,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF926AD3),
+                    ),
 
-                  child: Image.network(
-                    image + photo.toString(),
-                    fit: BoxFit.fitHeight,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, url, error) => Icon(Icons.error,color: Colors.white,),
-                  ),
-                  //color: Colors.red,
-                  // child: Image.network(
-                  //   image + widget.user.photo.toString(),
-                  //   fit: BoxFit.fitHeight,
-                  // ),
-                )),
+                    child: Image.network(
+                      image + photo.toString(),
+                      fit: BoxFit.fitHeight,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, url, error) => Icon(Icons.error,color: Colors.white,),
+                    ),
+                    //color: Colors.red,
+                    // child: Image.network(
+                    //   image + widget.user.photo.toString(),
+                    //   fit: BoxFit.fitHeight,
+                    // ),
+                  )),
+                ),
             //Image shadow
             Positioned(
                 top: 0,

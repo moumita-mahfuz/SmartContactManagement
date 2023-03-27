@@ -22,13 +22,16 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _nameValidate = false;
   bool _emailValidate = false;
   bool _passValidate = false;
+  bool _circularIndicator = false;
 
   void signup(String name, email, password) async {
     int x = 0;
     try {
       Response response = await post(
         ///api/auth/registration
-          Uri.parse('http://scm.womenindigital.net/api/auth/registration'),
+        ///https://scm.womenindigital.net/api/auth/registration
+        ///https://scm.womenindigital.net/api/auth/registration/user
+          Uri.parse('https://scm.womenindigital.net/api/auth/registration/user'),
           headers: {
             "Accept": 'application/json',
           },
@@ -43,6 +46,9 @@ class _SignUpPageState extends State<SignUpPage> {
       print(response.statusCode);
 
       if (response.statusCode == 200) {
+        setState(() {
+          _circularIndicator = false;
+        });
         var data = jsonDecode(response.body.toString());
         print(data['token']);
         print('Register successfully');
@@ -55,6 +61,9 @@ class _SignUpPageState extends State<SignUpPage> {
         //prefs.setInt('loginID', data['token']);
 
       } else if(response.statusCode == 422 || response.statusCode == 500) {
+        setState(() {
+          _circularIndicator = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           backgroundColor: Color(0xFF926AD3),
           content: Text(
@@ -64,9 +73,15 @@ class _SignUpPageState extends State<SignUpPage> {
           duration: Duration(milliseconds: 1500),
         ));
       }else {
+        setState(() {
+          _circularIndicator = false;
+        });
         print('failed' + response.statusCode.toString());
       }
     } catch (e) {
+      setState(() {
+        _circularIndicator = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         backgroundColor: Color(0xFF926AD3),
         content: Text(
@@ -201,6 +216,10 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _submitButton() {
     return GestureDetector(
       onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
         setState(() {
           nameController.text.isEmpty ? _nameValidate = true : _nameValidate = false;
           emailController.text.isEmpty? _emailValidate = true : _emailValidate = false;
@@ -209,6 +228,9 @@ class _SignUpPageState extends State<SignUpPage> {
         if(nameController.text.isNotEmpty && emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
           signup(nameController.text.toString(), emailController.text.toString(),
               passwordController.text.toString());
+          setState(() {
+            _circularIndicator = true;
+          });
         }
       },
       child: Container(
@@ -230,10 +252,32 @@ class _SignUpPageState extends State<SignUpPage> {
           //     end: Alignment.centerRight,
           //     colors: [Colors.white70, Colors.white])
         ),
-        child: const Text(
+        child: (_circularIndicator)
+            ? Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                backgroundColor: Color(0xFF9A9A9A),
+              ),
+              height: 12,
+              width: 12,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(
+              'Please Wait...',
+              style: TextStyle(
+                  color: Color(0xFF9A9A9A), fontWeight: FontWeight.bold),
+            ),
+          ],
+        )
+            : Text(
           'Sign up',
-          style:
-          TextStyle(color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
         ),
       ),
     );

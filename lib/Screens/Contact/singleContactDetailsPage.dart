@@ -1,22 +1,33 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:community_app/Screens/Auth/settingsPage.dart';
 import 'package:community_app/Screens/Contact/updateSingleContactDetailsPage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:mailto/mailto.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Model/contact.dart';
 import '../Auth/loginPage.dart';
 import '../User/userProfilePage.dart';
+import 'dart:async';
+import 'package:path_provider/path_provider.dart';
 
 class SingleContactDetailsPage extends StatefulWidget {
   final Contact contact;
-  const SingleContactDetailsPage({Key? key, required this.contact})
+  final String token;
+  final bool isChanged;
+  const SingleContactDetailsPage(
+      {Key? key,
+      required this.contact,
+      required this.token,
+      required this.isChanged})
       : super(key: key);
 
   @override
@@ -37,18 +48,22 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   late String connections;
   late String socialLinks;
   late String note;
+  late String favourite;
   List<Contact> connectionsContact = [];
+  List<String> connectionsContactString = [];
   String image = 'https://scm.womenindigital.net/storage/uploads/';
   bool _hasCallSupport = false;
   bool _isFav = false;
+  bool _isChange = false;
   Future<void>? _launched;
+  String shareText = '';
 
   //https://scm.womenindigital.net/storage/uploads/202302120406-Twitter-logo-png.png
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    valueInitialization();
+    shareText = valueInitialization();
     // Check for phone call support.
     canLaunchUrl(Uri(scheme: 'tel', path: '123')).then((bool result) {
       setState(() {
@@ -57,11 +72,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     });
   }
 
-  void valueInitialization() {
+  String valueInitialization() {
+    String text = '';
     if (widget.contact.name?.isEmpty ?? true) {
       name = "";
     } else {
       name = widget.contact.name.toString();
+      text = "Name: " + widget.contact.name.toString() + '\n';
     }
     if (widget.contact.photo?.isEmpty ?? true) {
       photo = '202302160552-profile-white.png';
@@ -72,37 +89,48 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     if (widget.contact.phone_no?.isEmpty ?? true) {
       phone_no = " ";
     } else {
-      phone_no = widget.contact.phone_no.toString();
+      phone_no = widget.contact.phone_no.toString().replaceAll(RegExp('[^0-9+]'), '');
+      text = text + "Phone: " + widget.contact.phone_no.toString() + '\n';
     }
 
     if (widget.contact.email?.isEmpty ?? true) {
       email = " ";
     } else {
       email = widget.contact.email.toString();
+      text = text + "Email: " + widget.contact.email.toString() + '\n';
     }
 
     if (widget.contact.designation?.isEmpty ?? true) {
       designation = " ";
     } else {
       designation = widget.contact.designation.toString();
+      text = text + widget.contact.designation.toString() + ' ';
     }
 
     if (widget.contact.organization?.isEmpty ?? true) {
       organization = " ";
     } else {
       organization = widget.contact.organization.toString();
+      text = text + "- " + widget.contact.organization.toString();
     }
-
-    if (widget.contact.connected_id?.isEmpty ?? true) {
+    print("CONNECTION"+widget.contact.connected_id.toString()+"END");
+    if (widget.contact.connected_id.toString()== '[]') {
       connections = " ";
     } else {
-      getConnectionsId(widget.contact.connected_id.toString());
-      // print('Connection list: $connectionsContact');
       connections = " ";
+      getConnectionsId(widget.contact.connected_id.toString());
+      print('Connection list: ' + widget.contact.connected_id.toString());
+
       for (Contact x in connectionsContact) {
         connections = "$connections${x.name} ";
         //print(connections);
       }
+      if(connectionsContactString.isNotEmpty){
+        for (String s in connectionsContactString) {
+          connections = "$connections$s ";
+        }
+      }
+
     }
 
     if (widget.contact.date_of_birth?.isEmpty ?? true) {
@@ -140,9 +168,21 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     } else {
       note = widget.contact.note.toString();
     }
+    if (widget.contact.favourite?.isEmpty ?? true) {
+      favourite = 'false';
+      _isFav = false;
+    } else {
+      favourite = widget.contact.favourite.toString();
+      if (widget.contact.favourite.toString() == 'true') {
+        _isFav = true;
+      } else {
+        _isFav = false;
+      }
+    }
     print(
         '$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
         '$gender : $address : $connections : $socialLinks : $note');
+    return text;
   }
 
   getConnectionsId(String connectionsArray) {
@@ -152,6 +192,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     final contactIDs = temp0[0];
     //print(contactIDs);
     final list = contactIDs.split(', ');
+    print("LIST LENGTH "+list.length.toString());
     for (Contact x in ContactListPage.contactList) {
       //print("Name: " + x.name.toString() + x.id.toString());
       if (list.contains(x.id.toString())) {
@@ -159,7 +200,33 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
         connectionsContact.add(x);
       }
     }
+    for(String s in list) {
+      bool check = isNumericUsing_tryParse(s);
+      if(check == false) {
+        connectionsContactString.add(s);
+      }
+    }
     print("connectionsContact: " + connectionsContact.toString());
+  }
+
+
+  bool isNumericUsing_tryParse(String string) {
+    // Null or empty string is not a number
+    // if (string == null || string.isEmpty) {
+    //   return false;
+    // }
+
+    // Try to parse input string to number.
+    // Both integer and double work.
+    // Use int.tryParse if you want to check integer only.
+    // Use double.tryParse if you want to check double only.
+    final number = num.tryParse(string);
+
+    if (number == null) {
+      return false;
+    }
+
+    return true;
   }
 
   Future<http.Response> deleteContact() async {
@@ -169,11 +236,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     //String url =  'http://scm.womenindigital.net/api/${prefs.getInt('loginID')}/allConnections';
     // http://scm.womenindigital.net/api/connection/18/delete --> Delete endpoint
     final http.Response response = await http.delete(
-      Uri.parse('http://scm.womenindigital.net/api/connection/$id/delete'),
+      Uri.parse('https://scm.womenindigital.net/api/connection/$id/delete'),
       headers: {'Authorization': 'Bearer ${prefs.getString('token')}'},
     );
     if (response.statusCode == 200) {
       print("successfully deleted Contact: $id");
+      Navigator.pop(context);
+      Navigator.pop(context);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -202,7 +271,17 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
       children: [
         InkWell(
           onTap: () {
-            Navigator.pop(context);
+            if (_isChange || widget.isChanged) {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) => ContactListPage(
+                            token: widget.token,
+                          ))));
+            } else {
+              Navigator.pop(context);
+            }
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20, 15, 0, 0),
@@ -222,12 +301,197 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     );
   }
 
-  Widget _topRightButtons() {
+  // Future<String> get _localPath async {
+  //   final directory = await getExternalStorageDirectory();
+  //
+  //   return directory!.path;
+  // }
+  //
+  // Future<File> get _localFile async {
+  //   final path = await _localPath;
+  //   return File(path +"/" +widget.contact.name.toString()+".vcf");
+  // }
+  // Future<File> _incrementCounter() {
+  //   setState(() {
+  //     _counter++;
+  //   });
+  //
+  //   // Write the variable as a string to the file.
+  //   return widget.storage.writeCounter(_counter);
+  // }
+
+  // getVCF(BuildContext context) async {
+  //   Contact p = widget.contact;
+  //   List<String> files= [];
+  //   File vcfFile = await _localFile;
+  //   print (vcfFile);
+  //   //file.writeAsString('$counter');
+  //   String contact = "BEGIN:VCARD\r\n" +
+  //       "VERSION:3.0\r\n" +
+  //       "N:" +
+  //       p.name.toString() +
+  //       ";" +
+  //       "\r\n" +
+  //       "ORG:" +
+  //       p.organization.toString() +
+  //       "\r\n" +
+  //       "TEL;TYPE=HOME:" +
+  //       p.phone_no.toString() +
+  //       '\n' +
+  //       "END:VCARD\r\n";
+  //   vcfFile.writeAsString('$contact');
+  //   final box = context.findRenderObject() as RenderBox?;
+  //   await Share.shareXFiles(['${directory.path}/image.jpg'],
+  //       text: text,
+  //       subject: subject,
+  //       sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+  //
+  //   // FileWriter fw = FileWriter();
+  //   // fw.write("BEGIN:VCARD\r\n");
+  //   // fw.write("VERSION:3.0\r\n");
+  //   // fw.write("N:" + p.getSurname() + ";" + p.getFirstName() + "\r\n");
+  //   // fw.write("FN:" + p.getFirstName() + " " + p.getSurname() + "\r\n");
+  //   // fw.write("ORG:" + p.getCompanyName() + "\r\n");
+  //   // fw.write("TITLE:" + p.getTitle() + "\r\n");
+  //   // fw.write("TEL;TYPE=WORK,VOICE:" + p.getWorkPhone() + "\r\n");
+  //   // fw.write("TEL;TYPE=HOME,VOICE:" + p.getHomePhone() + "\r\n");
+  //   // fw.write("ADR;TYPE=WORK:;;" + p.getStreet() + ";" + p.getCity() + ";" + p.getState() + ";" + p.getPostcode() + ";" + p.getCountry() + "\r\n");
+  //   // fw.write("EMAIL;TYPE=PREF,INTERNET:" + p.getEmailAddress() + "\r\n");
+  //   // fw.write("END:VCARD\r\n");
+  //   // fw.close();
+  //
+  //   // Intent i = new Intent();
+  //   // i.setAction(android.content.Intent.ACTION_VIEW);
+  //   // i.setDataAndType(Uri.fromFile(vcfFile), "text/x-vcard");
+  //   // startActivity(i);
+  // }
+
+  Future<String> get _localPath async {
+    final directory = await getDownloadsDirectory();
+
+    return directory!.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File(path + "/" + widget.contact.name.toString() + ".vcf");
+  }
+
+  Future<File> _createFile(String data) async {
+    final file = await _localFile;
+    return file.writeAsString(data);
+  }
+
+  _onShare(BuildContext context, int value) async {
+    final box = context.findRenderObject() as RenderBox?;
+    Contact p = widget.contact;
+    //0 = text, 1= vCard
+    if (value == 0) {
+      await Share.share(shareText,
+          subject: 'Smart Contact Management - $name',
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+    } else if (value == 1) {
+      final directory = await getExternalStorageDirectory();
+      final path = directory!.path;
+      File vcfFile = File(path + "/" + widget.contact.name.toString() + ".vcf");
+      print(vcfFile);
+      String contact = "BEGIN:VCARD\r\n" +
+          "VERSION:3.0\r\n" +
+          "N:" +
+          p.name.toString() +
+          ";" +
+          "\r\n" +
+          "ORG:" +
+          p.organization.toString() +
+          "\r\n" +
+          "TEL;TYPE=WORK,VOICE:" +
+          p.phone_no.toString() +
+          "\r\n" +
+          "END:VCARD\r\n";
+      vcfFile.writeAsString('$contact');
+      //ShareExtend.share(_vcf.path, "file");
+
+      XFile? xfile = XFile(vcfFile!.path);
+      await Share.shareXFiles([xfile],
+          text: shareText,
+          subject: 'Smart Contact Management - $name',
+          sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+    }
+  }
+
+  Widget _topRightButtons(BuildContext context) {
     return Row(
       children: [
+        //SHARE BUTTON
+        PopupMenuButton(
+            // add icon, by default "3 dot" icon
+            icon: const Icon(
+              Icons.share,
+              color: Colors.white,
+            ),
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem<int>(
+                  value: 0,
+                  child: Text(" as Text "),
+                ),
+                PopupMenuItem<int>(
+                  value: 1,
+                  child: Text(" as Vcard "),
+                ),
+              ];
+            },
+            onSelected: (value) async {
+              if (value == 0) {
+                if (kDebugMode) {
+                  print("as Text is selected.");
+                }
+                _onShare(context, 0);
+              } else if (value == 1) {
+                if (kDebugMode) {
+                  print("as Vcard is selected.");
+                }
+                _onShare(context, 1);
+              }
+            }),
+        // InkWell(
+        //   onTap: () async {
+        //     _popUpMenus();
+        //     //_onShare(context);
+        //     print("Taped middle");
+        //     // String contact = "BEGIN:VCARD\r\n" +
+        //     //     "VERSION:3.0\r\n" +
+        //     //     "N:" +
+        //     //     widget.contact.name.toString() +
+        //     //     ";" +
+        //     //     "\r\n" +
+        //     //     "ORG:" +
+        //     //     widget.contact.organization.toString() +
+        //     //     "\r\n" +
+        //     //     "EMAIL;TYPE=PREF,INTERNET:" + widget.contact.email!.toString() + "\r\n"
+        //     //     "TEL;TYPE=WORK,VOICE:" + widget.contact.phone_no!.toString() + "\r\n" +
+        //     //     "END:VCARD\r\n";
+        //     // var _vcf = await _createFile(contact);
+        //     // await Share.shareFiles(
+        //     //  // [XFile(_vcf.path, name: widget.contact.name)],
+        //     //   [_vcf.path],
+        //     //   subject: 'vCardName',
+        //     //   text: 'vCard',
+        //     // );
+        //   },
+        //   child: Container(
+        //     padding:
+        //         const EdgeInsets.only(left: 0, top: 10, bottom: 10, right: 10),
+        //     //Icon(Icons.more_vert)
+        //     child: Icon(Icons.share, color: Colors.white),
+        //   ),
+        // ),
         //EDIT BUTTON
         InkWell(
           onTap: () {
+            setState(() {
+              _isChange = true;
+            });
             print("Taped edit");
             Navigator.push(
                 context,
@@ -241,17 +505,6 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
             //Icon(Icons.more_vert)
             child: Icon(Icons.drive_file_rename_outline_rounded,
                 color: Colors.white),
-          ),
-        ),
-        InkWell(
-          onTap: () {
-            print("Taped middle");
-          },
-          child: Container(
-            padding:
-                const EdgeInsets.only(left: 0, top: 10, bottom: 10, right: 10),
-            //Icon(Icons.more_vert)
-            child: Icon(Icons.share, color: Colors.white),
           ),
         ),
         //DELETE BUTTON
@@ -314,7 +567,6 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
 
         PopupMenuButton(
             // add icon, by default "3 dot" icon
-
             icon: Icon(
               Icons.more_vert_rounded,
               color: Colors.white,
@@ -326,7 +578,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.person,
+                        Icons.account_circle_rounded,
                         color: Color(0xFF926AD3),
                       ),
                       Text(" My Account"),
@@ -369,11 +621,14 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                     MaterialPageRoute(
                         builder: ((context) => UserProfilePage(
                               user: ContactListPage.user[0],
+                              isChanged: false,
                             ))));
               } else if (value == 1) {
                 if (kDebugMode) {
                   print("Settings menu is selected.");
                 }
+                Navigator.push(context,
+                    MaterialPageRoute(builder: ((context) => SettingPage())));
               } else if (value == 2) {
                 // final prefs = await SharedPreferences.getInstance();
                 // prefs.setBool('isLoggedIn',false);
@@ -386,6 +641,66 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
             }),
       ],
     );
+  }
+
+  Widget _popUpMenus() {
+    return PopupMenuButton(
+        // add icon, by default "3 dot" icon
+        icon: const Icon(
+          Icons.more_vert_rounded,
+          color: Colors.white,
+        ),
+        itemBuilder: (context) {
+          return [
+            PopupMenuItem<int>(
+              value: 0,
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.person,
+                    color: Color(0xFF926AD3),
+                  ),
+                  Text(" as Text "),
+                ],
+              ),
+            ),
+            PopupMenuItem<int>(
+              value: 1,
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.settings,
+                    color: Color(0xFF926AD3),
+                  ),
+                  Text(" as Vcard "),
+                ],
+              ),
+            ),
+          ];
+        },
+        onSelected: (value) async {
+          if (value == 0) {
+            if (kDebugMode) {
+              print("as Text is selected.");
+            }
+            //widget.contact.favourite?.isEmpty ?? true
+            if (ContactListPage.user!.isNotEmpty ?? true) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) => UserProfilePage(
+                            user: ContactListPage.user[0],
+                            isChanged: false,
+                          ))));
+            }
+          } else if (value == 1) {
+            if (kDebugMode) {
+              print("as Vcard is selected.");
+            }
+            Navigator.push(context,
+                MaterialPageRoute(builder: ((context) => SettingPage())));
+          }
+        });
   }
 
   _sendingSMS(String phone) async {
@@ -409,11 +724,33 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: Color(0xFF926AD3),
       content: Text(
-       massage,
+        massage,
         style: TextStyle(fontSize: 14),
       ),
       duration: Duration(milliseconds: 1500),
     ));
+  }
+
+  Future _updateStatusApi(String contactID, String status) async {
+    ///api/form/64/updateFavourite
+    setState(() {
+      _isChange = true;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    String url =
+        'https://scm.womenindigital.net/api/form/$contactID/updateFavourite';
+    Map<String, String> headers = {
+      "Accept": 'application/json',
+      'Authorization': 'Bearer ${prefs.getString('token')}'
+    };
+    Map<String, String> body = {'favourite': status};
+    var request = http.MultipartRequest('POST', Uri.parse(url));
+    request.headers.addAll(headers);
+    request.fields.addAll(body);
+    var response = await request.send();
+    if (kDebugMode) {
+      print(response.statusCode);
+    }
   }
 
   Widget _bottomCenterOptions() {
@@ -424,11 +761,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
           InkWell(
               onTap: () {
                 if (_isFav == true) {
-                  print(_isFav);
-                  _snackBar( "Removed from Favorites!");
+                  print("ISIDE " + _isFav.toString());
+                  _snackBar("Removed from Favorites!");
+                  _updateStatusApi(widget.contact.id.toString(), 'false');
                 } else {
-                  print(_isFav);
+                  print("ISIDE " + _isFav.toString());
                   _snackBar("Added to Favorites!");
+                  _updateStatusApi(widget.contact.id.toString(), 'true');
                 }
                 setState(
                   () {
@@ -552,7 +891,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
       final prefs = await SharedPreferences.getInstance();
       print('Bearer ${prefs.getString('token')}');
       Response response = await post(
-        Uri.parse('http://scm.womenindigital.net/api/auth/logout'),
+        Uri.parse('https://scm.womenindigital.net/api/auth/logout'),
         headers: {'Authorization': 'Bearer ${prefs.getString('token')}'},
       );
 
@@ -581,6 +920,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   }
 
   Widget _textField(String hintText, String value, Icon icon) {
+    print(hintText +value+"/");
     TextEditingController controller = TextEditingController();
     if (value != " ") {
       controller.text = value;
@@ -664,22 +1004,17 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
           fit: StackFit.loose,
           clipBehavior: Clip.hardEdge,
           children: <Widget>[
+
             //Contact Image
             Positioned(
-                top: 0,
-                right: 0,
+              top: 0,
+              right: 0,
+              child: ClipPath(
+                clipper: OvalBottomBorderClipper(),
                 child: Container(
-                  height: (width * (870 / 1080)),
+                  height: (width * (870 / 1080)) + 10,
                   width: width,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF926AD3),
-                    // color: Colors.deepOrange,
-                    // borderRadius: BorderRadius.only(
-                    //   bottomLeft: Radius.circular(100),
-                    //   bottomRight: Radius.circular(100),
-                    // ),
-                  ),
-                  //color: Colors.red,
+                  color: Color(0xFF926AD3),
                   child: Image.network(
                     image + photo,
                     fit: BoxFit.fitHeight,
@@ -697,12 +1032,48 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                     },
                     errorBuilder: (context, url, error) => Icon(Icons.error),
                   ),
+                ),
+              ),
+            ),
 
-                  // Image.network(
-                  //   image + photo,
-                  //   fit: BoxFit.fitHeight,
-                  // ),
-                )),
+            // Positioned(
+            //     top: 0,
+            //     right: 0,
+            //     child: Container(
+            //       height: (width * (870 / 1080)),
+            //       width: width,
+            //       decoration: const BoxDecoration(
+            //         color: Color(0xFF926AD3),
+            //         // color: Colors.deepOrange,
+            //         // borderRadius: BorderRadius.only(
+            //         //   bottomLeft: Radius.circular(100),
+            //         //   bottomRight: Radius.circular(100),
+            //         // ),
+            //       ),
+            //       //color: Colors.red,
+            //       child: Image.network(
+            //         image + photo,
+            //         fit: BoxFit.fitHeight,
+            //         loadingBuilder: (BuildContext context, Widget child,
+            //             ImageChunkEvent? loadingProgress) {
+            //           if (loadingProgress == null) return child;
+            //           return Center(
+            //             child: CircularProgressIndicator(
+            //               value: loadingProgress.expectedTotalBytes != null
+            //                   ? loadingProgress.cumulativeBytesLoaded /
+            //                       loadingProgress.expectedTotalBytes!
+            //                   : null,
+            //             ),
+            //           );
+            //         },
+            //         errorBuilder: (context, url, error) => Icon(Icons.error),
+            //       ),
+            //
+            //       // Image.network(
+            //       //   image + photo,
+            //       //   fit: BoxFit.fitHeight,
+            //       // ),
+            //     )),
             Positioned(
                 top: 0,
                 height: (width * (300 / 1080)),
@@ -712,7 +1083,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   fit: BoxFit.fitWidth,
                 )),
             Positioned(top: 30, left: 0, child: _backButton()),
-            Positioned(top: 30, right: 0, child: _topRightButtons()),
+            Positioned(top: 30, right: 0, child: _topRightButtons(context)),
             Positioned(
                 top: (width * (870 / 1080)) - 30,
                 child: _bottomCenterOptions()),

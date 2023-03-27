@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Model/contact.dart';
@@ -15,6 +17,7 @@ import '../../Widget/bezierContainer.dart';
 import '../../Widget/multiSelectDropDown.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class NewContactAddPage extends StatefulWidget {
   final List<Contact> contactList;
@@ -43,6 +46,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   // Initial Selected Value
   //File f = await getImageFileFromAssets('images/myImage.jpg');
   File _image = File('/');
+  CroppedFile? _croppedFile;
   final picker = ImagePicker();
   late String dropdownvalue;
   FocusNode searchFocusNode = FocusNode();
@@ -53,6 +57,8 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   bool showSpinner = false;
   bool isLoading = false;
   bool _validate = false;
+  String errorText = 'Name Can\'t Be Empty';
+  String _completePhnNo = '';
   late String _id;
 
   @override
@@ -64,16 +70,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     //genderController = dropdownvalue;
   }
 
-  // Future<File> getImageFileFromAssets(String path) async {
-  //   final byteData = await rootBundle.load('assets/$path');
-  //
-  //   final file = File('${(await getTemporaryDirectory()).path}/$path');
-  //   await file.writeAsBytes(byteData.buffer
-  //       .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-  //   print("FILE PATH: "+file.path.toString());
-  //
-  //   return file;
-  // }
   Future<File> getImageFileFromAssets(String path) async {
     final byteData = await rootBundle.load('assets/$path');
     final file = await File('${(await getTemporaryDirectory()).path}/$path')
@@ -189,7 +185,8 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       String social_media,
       String note) async {
     final prefs = await SharedPreferences.getInstance();
-    String uri = 'http://scm.womenindigital.net/api/form/post';
+    //https://scm.womenindigital.net/api/form/post
+    String uri = 'https://scm.womenindigital.net/api/form/post';
     Map<String, String> headers = {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
@@ -206,16 +203,17 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       'address': address,
       'social_media': social_media,
       'note': note,
-      'created_by': prefs.getInt('loginID').toString()
+      'created_by': prefs.getInt('loginID').toString(),
+      'favourite': 'false'
     };
     var request = http.MultipartRequest('POST', Uri.parse(uri));
-    print("IMAGE" + _image.toString() + " " + _image.path.toString());
-    if ((_image != null || _image != '/') && _image.path != '/') {
+    //print("IMAGE" + _croppedFile.toString() + " " + _croppedFile!.path.toString());
+    if (_croppedFile != null ) {
       //File f = await getImageFileFromAssets('images/profile.png');
       request.headers.addAll(headers);
       request.fields.addAll(body);
       request.files
-          .add(await http.MultipartFile.fromPath('photo', _image.path));
+          .add(await http.MultipartFile.fromPath('photo', _croppedFile!.path));
     } else {
       File f = await getImageFileFromAssets('images/profile-white.png');
       request.headers.addAll(headers);
@@ -227,12 +225,16 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       print(response.statusCode);
     }
     if (response.statusCode == 200) {
+      Navigator.pop(context);
+      Navigator.pop(context);
       goBack();
       //return true;
     } else {
       // return false;
     }
   }
+
+
   //
   // //http://scm.womenindigital.net/api/form/post/images
   // Future<bool> addImage(String id, String imagePath) async {
@@ -312,9 +314,10 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   Future getImage(int status) async {
     if (status == 1) {
       final pickedFile = await picker.getImage(source: ImageSource.gallery);
+
       setState(() {
-        if (pickedFile != null) {
-          _image = File(pickedFile.path);
+        if(pickedFile != null) {
+          _cropImage(pickedFile);
         } else {
           print('No image selected.');
         }
@@ -322,12 +325,30 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     } else if (status == 2) {
       final pickedFile = await picker.getImage(source: ImageSource.camera);
       setState(() {
-        if (pickedFile != null) {
-          _image = File(pickedFile.path);
+        if(pickedFile != null) {
+          _cropImage(pickedFile);
         } else {
           print('No image selected.');
         }
       });
+    }
+  }
+  /// Crop Image
+  Future<void> _cropImage(final _pickedFile) async {
+    if (_pickedFile != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: _pickedFile!.path,
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 100,
+          // maxWidth: 1080,
+          // maxHeight: 1080,
+        aspectRatio: CropAspectRatio(ratioX: 6.2, ratioY: 5),
+      );
+      if (croppedFile != null) {
+        setState(() {
+          _croppedFile = croppedFile;
+        });
+      }
     }
   }
 
@@ -388,38 +409,38 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             children: [
               Center(
                 child: Container(
-                  child: (_image != null && _image.path != '/')
+                  child: (_croppedFile != null)
                       ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.file(
-                      File(_image!.path).absolute,
-                      // _image,
-                      width: width * (38 / 100),
-                      height: height * (23 / 100),
-                      fit: BoxFit.fitHeight,
-                    ),
-                  )
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.file(
+                            File(_croppedFile!.path).absolute,
+                            // _image,
+                            width: width * (38 / 100),
+                            height: height * (23 / 100),
+                            fit: BoxFit.fitHeight,
+                          ),
+                        )
                       : Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xfff3f3f4),
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                    width: width * (38 / 100),
-                    height: height * (23 / 100),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(
-                        'assets/images/profile-white.png',
-                        // _image,
-                        width: width * (35 / 100),
-                        height: height * (23 / 100),
-                        fit: BoxFit.fitHeight,
-                      ),
-                    ),
-                  ),
+                          decoration: const BoxDecoration(
+                            color: Color(0xfff3f3f4),
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
+                          width: width * (38 / 100),
+                          height: height * (23 / 100),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.asset(
+                              'assets/images/profile-white.png',
+                              // _image,
+                              width: width * (35 / 100),
+                              height: height * (23 / 100),
+                              fit: BoxFit.fitHeight,
+                            ),
+                          ),
+                        ),
                 ),
               ),
-              Positioned(bottom: 0, right: 15 , child: _cameraIcon()),
+              Positioned(bottom: 0, right: 15, child: _cameraIcon()),
               // Align(
               //   alignment: Alignment.bottomRight,
               //   child: Padding(
@@ -440,17 +461,20 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   Widget _cameraIcon() {
     return const Padding(
       padding: EdgeInsets.all(8),
-      child:  CircleAvatar(
-        backgroundColor:  Color(0xFF926AD3),
+      child: CircleAvatar(
+        backgroundColor: Color(0xFF926AD3),
         radius: 20,
-        child: Icon(Icons.camera_alt,color: Colors.white,),
+        child: Icon(
+          Icons.camera_alt,
+          color: Colors.white,
+        ),
       ),
     );
   }
 
   Widget _genderSuffixPopUpMenu() {
     return PopupMenuButton(
-      // add icon, by default "3 dot" icon
+        // add icon, by default "3 dot" icon
         icon: Icon(Icons.keyboard_arrow_down_rounded),
         itemBuilder: (context) {
           return [
@@ -485,7 +509,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
 
   Widget _genderPrefixPopUpMenu() {
     return PopupMenuButton(
-      // add icon, by default "3 dot" icon
+        // add icon, by default "3 dot" icon
         icon: Icon(Icons.accessibility_new),
         itemBuilder: (context) {
           return [
@@ -534,13 +558,16 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           Expanded(
             child: TextField(
               controller: genderController,
-              style: const TextStyle(color: Color(0xFF9A9A9A)),//editing controller of this TextField
+              style: const TextStyle(
+                  color:
+                      Color(0xFF9A9A9A)), //editing controller of this TextField
               decoration: InputDecoration(
                   hintText: dropdownvalue,
                   suffixIcon: _genderSuffixPopUpMenu(),
                   prefixIcon: _genderPrefixPopUpMenu(),
                   enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+                    borderSide:
+                        BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
                   ),
                   fillColor: Colors.transparent,
                   filled: true),
@@ -564,31 +591,51 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             spacing: 5,
             children: _checkedItems
                 .map((e) => Chip(
-              backgroundColor: Color(0xFF926AD3),
-              deleteIcon: Icon(Icons.close),
-              label: Text(e,style: TextStyle(color: Colors.white),),
-            ))
+                      backgroundColor: Color(0xFF926AD3),
+                      deleteIcon: Icon(Icons.close,color: Colors.white,),
+                      onDeleted: () {
+                        setState(() {
+                          _checkedItems.remove(e);
+                          _mItems.add(e);
+                        });
+                      },
+                      label: Text(
+                        e,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ))
                 .toList(),
           ),
           TextField(
             style: const TextStyle(color: Color(0xFF9A9A9A)),
+            controller: connectedController,
             //controller: dateController, //editing controller of this TextField
             decoration: InputDecoration(
                 hintText: hintText,
-                prefixIcon: icon,
-                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded),
+                prefixIcon: _iconCW(icon),
+                suffixIcon: _iconCW(Icon(Icons.keyboard_arrow_down_rounded)),
                 enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+                  borderSide:
+                      BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
                 ),
                 fillColor: Colors.transparent,
                 filled: true),
-            readOnly: true, //Clickable and not editable
-            onTap: () async {
-              _showMultiSelect();
-            },
+            //readOnly: true,
+            //Clickable and not editable
+            // onTap: () async {
+            //   _showMultiSelect();
+            // },
           ),
         ],
       ),
+    );
+  }
+  Widget _iconCW(Icon icon) {
+    return InkWell(
+      onTap: () async {
+        _showMultiSelect();
+      },
+      child: icon,
     );
   }
 
@@ -597,10 +644,12 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       margin: EdgeInsets.symmetric(vertical: 10),
       child: TextField(
         controller: dobController,
-        style: const TextStyle(color: Color(0xFF9A9A9A)),//editing controller of this TextField
+        style: const TextStyle(
+            color: Color(0xFF9A9A9A)), //editing controller of this TextField
         decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: icon,
+            suffixIcon: Icon(Icons.calendar_month_rounded),
             enabledBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
             ),
@@ -611,8 +660,8 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           DateTime? pickedDate = await showDatePicker(
               context: context,
               initialDate: DateTime.now(), //get today's date
-              firstDate: DateTime(
-                  1950), //DateTime.now() - not to allow to choose before today.
+              firstDate: DateTime(1950,
+                  1), //DateTime.now() - not to allow to choose before today.
               lastDate: DateTime(2101));
 
           if (pickedDate != null) {
@@ -650,11 +699,11 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           textCapitalization: type,
           controller: controller,
           obscureText: isPassword,
-          style: const TextStyle(color: Color(0xFF9A9A9A)),
+          style: const TextStyle(color: Color(0xFF926AD3)),
           decoration: InputDecoration(
               hintText: hintText,
               prefixIcon: icon,
-              errorText: _validate ? 'Name Can\'t Be Empty' : null,
+              errorText: _validate ? errorText : null,
               //suffixIcon: Icon(Icons.),
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
@@ -663,10 +712,10 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
               filled: true),
         ),
       );
-    } else {
-      //TextEditingController controllerTitle,
+    }
+    else if (hintText == "Email") {
       return Container(
-        margin: EdgeInsets.symmetric(vertical: 10),
+        margin: EdgeInsets.only(bottom: 10),
         child: TextField(
           //enabled: false, //Not clickable and not editable
           keyboardType: inputType,
@@ -674,7 +723,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           textCapitalization: type,
           controller: controller,
           obscureText: isPassword,
-          style: const TextStyle(color: Color(0xFF9A9A9A)),
+          style: const TextStyle(color: Color(0xFF926AD3)),
           decoration: InputDecoration(
               hintText: hintText,
               prefixIcon: icon,
@@ -688,6 +737,57 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
         ),
       );
     }
+    else {
+      //TextEditingController controllerTitle,
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: TextField(
+          //enabled: false, //Not clickable and not editable
+          keyboardType: inputType,
+          textInputAction: TextInputAction.next,
+          textCapitalization: type,
+          controller: controller,
+          obscureText: isPassword,
+          style: const TextStyle(color: Color(0xFF926AD3)),
+          decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: icon,
+
+              //suffixIcon: Icon(Icons.),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+              ),
+              fillColor: Colors.transparent,
+              filled: true),
+        ),
+      );
+    }
+  }
+
+  Widget _phoneEntryField() {
+   return Container(
+      margin: EdgeInsets.only(top: 10),
+      child: IntlPhoneField(
+        controller: phoneController,
+        //dropdownIcon: Icon(Icons.phone_rounded),
+        dropdownTextStyle: const TextStyle(color: Color(0xFF9A9A9A)),
+        //dropdownIconPosition: IconPosition.trailing,
+        style: const TextStyle(color: Color(0xFF926AD3)),
+        decoration: InputDecoration(
+          hintText: 'Phone',
+          prefixIcon:  Icon(Icons.phone_rounded),
+          fillColor: Colors.transparent,
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+          ),
+        ),
+        initialCountryCode: 'BD',
+        onChanged: (phone) {
+          _completePhnNo =  phone.countryCode +"-"+ phone.number +"-"+ phone.countryISOCode;
+          print("COMPLETE NUMBER  "+ phone.countryISOCode + phone.countryCode + phone.number);
+        },
+      ),
+    );
   }
 
   Widget _textFieldWidget() {
@@ -716,13 +816,14 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.text,
           Icon(Icons.work_rounded),
         ),
-        _entryField(
-          "Phone",
-          phoneController,
-          TextCapitalization.none,
-          TextInputType.phone,
-          Icon(Icons.phone_rounded),
-        ),
+        _phoneEntryField(),
+        // _entryField(
+        //   "Phone",
+        //   phoneController,
+        //   TextCapitalization.none,
+        //   TextInputType.phone,
+        //   Icon(Icons.phone_rounded),
+        // ),
         _entryField(
           "Email",
           emailController,
@@ -757,6 +858,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.text,
           Icon(Icons.note_alt_rounded),
         ),
+
         // _entryField("Password", isPassword: true),
       ],
     );
@@ -767,7 +869,18 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       children: [
         InkWell(
           onTap: () {
-            Navigator.pop(context);
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
+            if(nameController.text.isNotEmpty) {
+              setState(() {
+                _showDialog();
+              });
+            } else {
+              Navigator.pop(context);
+            }
+
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20, 15, 0, 0),
@@ -776,7 +889,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
               color: Colors.black12,
               borderRadius: BorderRadius.all(Radius.circular(40)),
             ),
-            child: const Text('  Back  ',
+            child: const Text('    Exit    ',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -787,29 +900,162 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     );
   }
 
+  Future<void> _showDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Exit'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('If you exit all input text will vanish.'),
+                Text('Do you really want to exit?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => {
+                Navigator.pop(context, 'Cancel'),
+              Navigator.pop(context),
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'OK'),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool isPresent(String name) {
+    bool status = false;
+    for (Contact x in ContactListPage.contactList) {
+      // print("isPresent name: ${x.name} == $name");
+      if (name == x.name.toString()) {
+        status = true;
+      }
+    }
+    return status;
+  }
+
   Widget _saveButton() {
     return InkWell(
       onTap: () {
-        setState(() {
-          setState(() {
-            nameController.text.isEmpty ? _validate = true : _validate = false;
-          });
-          showSpinner = true;
-        });
-        if (nameController.text.isNotEmpty) {
-          submitForm(
-              nameController.text.toString(),
-              designationController.text.toString(),
-              organizationController.text.toString(),
-              connectedController.text.toString(),
-              phoneController.text.toString(),
-              emailController.text.toString(),
-              dobController.text.toString(),
-              genderController.text.toString(),
-              addressController.text.toString(),
-              socialMediaController.text.toString(),
-              noteController.text.toString());
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
         }
+        setState(() {
+
+          nameController.text.isEmpty ? _validate = true : _validate = false;
+
+          bool status = isPresent(nameController.text.toString());
+          if (status == true) {
+            _validate = true;
+            errorText = 'Can\'t use same name';
+          } else {
+            _validate = false;
+            showSpinner = true;
+          }
+        });
+        if (showSpinner == true) {
+          showModalBottomSheet<void>(
+            context: context,
+            isDismissible: false,
+            builder: (BuildContext context) {
+              return Container(
+                height: 80,
+                color: Color(0xFF926AD3),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      SizedBox(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          backgroundColor: Colors.white,
+                        ),
+                        height: 18,
+                        width: 18,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "Please wait...",
+                        style: TextStyle(fontSize: 18,color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+          // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          //   backgroundColor: Color(0xFF926AD3),
+          //   content: Row(
+          //     children: [
+          //       SizedBox(
+          //         child: CircularProgressIndicator(
+          //           strokeWidth: 3,
+          //           backgroundColor: Color(0xFF9A9A9A),
+          //         ),
+          //         height: 14,
+          //         width: 14,
+          //       ),
+          //       SizedBox(
+          //         width: 10,
+          //       ),
+          //       Text(
+          //         "Please wait...",
+          //         style: TextStyle(fontSize: 14),
+          //       ),
+          //     ],
+          //   ),
+          //   //duration: Duration(milliseconds: 1500),
+          // ));
+        }
+
+        if (nameController.text.isNotEmpty && _validate == false) {
+          setState(() {
+            showSpinner = true;
+          });
+          if(_completePhnNo== ''){
+            submitForm(
+                nameController.text.toString(),
+                designationController.text.toString(),
+                organizationController.text.toString(),
+                connectedController.text.toString(),
+                phoneController.text.toString(),
+                emailController.text.toString(),
+                dobController.text.toString(),
+                genderController.text.toString(),
+                addressController.text.toString(),
+                socialMediaController.text.toString(),
+                noteController.text.toString());
+          } else {
+            submitForm(
+                nameController.text.toString(),
+                designationController.text.toString(),
+                organizationController.text.toString(),
+                connectedController.text.toString(),
+                _completePhnNo.toString(),
+                emailController.text.toString(),
+                dobController.text.toString(),
+                genderController.text.toString(),
+                addressController.text.toString(),
+                socialMediaController.text.toString(),
+                noteController.text.toString());
+          }
+        }
+
         //Navigator.pop(context);
       },
       child: Container(
@@ -842,6 +1088,9 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     }
     for (Contact x in selectedContact) {
       selectedContactIds.add(x.id.toString());
+    }
+    if(connectedController.text.isNotEmpty) {
+      selectedContactIds.add(connectedController.text.toString());
     }
     return selectedContactIds;
   }
@@ -893,13 +1142,14 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                         width: width,
                         child: Image.asset('assets/images/add-user.png'),
                       ),
-
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 25),
                         margin: EdgeInsets.only(top: 30),
-                        height:(width * (870 / 1080)),
+                        height: (width * (870 / 1080)),
                         width: width,
-                        child: Center(child: _imagePicker(height, width),),
+                        child: Center(
+                          child: _imagePicker(height, width),
+                        ),
                       ),
                     ],
                   ),
@@ -909,14 +1159,47 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                 ],
               ),
             ),
-            Positioned(top: 0, height: 50,
-                child: Image.asset('assets/images/overlay.png')),
+            Positioned(
+                top: 0,
+                height: (width * (300 / 1080)),
+                width: width,
+                child: Image.asset(
+                  'assets/images/overlay.png',
+                  fit: BoxFit.fitWidth,
+                )),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _saveButton()),
           ],
-
         ),
       ),
     );
   }
 }
+// class DialogExample extends StatelessWidget {
+//   const DialogExample({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return TextButton(
+//       onPressed: () => showDialog<String>(
+//         context: context,
+//         builder: (BuildContext context) => AlertDialog(
+//           title: const Text('AlertDialog Title'),
+//           content: const Text('AlertDialog description'),
+//           actions: <Widget>[
+//             TextButton(
+//               onPressed: () => Navigator.pop(context, 'Cancel'),
+//               child: const Text('Cancel'),
+//             ),
+//             TextButton(
+//               onPressed: () => Navigator.pop(context, 'OK'),
+//               child: const Text('OK'),
+//             ),
+//           ],
+//         ),
+//       ),
+//       child: const Text('Show Dialog'),
+//     );
+//   }
+// }
+

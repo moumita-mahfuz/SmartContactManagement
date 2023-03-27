@@ -5,8 +5,10 @@ import 'package:community_app/Screens/Contact/singleContactDetailsPage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../Model/contact.dart';
@@ -38,7 +40,7 @@ class _UpdateSingleContactDetailsPageState
   TextEditingController addressController = TextEditingController();
   TextEditingController socialMediaController = TextEditingController();
   TextEditingController noteController = TextEditingController();
-  // late String name;
+  late String initName;
   // late String photo;
   // late String phone_no;
   // late String email;
@@ -53,10 +55,13 @@ class _UpdateSingleContactDetailsPageState
   String image = 'https://scm.womenindigital.net/storage/uploads/';
 
   List<Contact> connectionsContact = [];
+  List<String> connectionsContactString = [];
   // Initial Selected Value
   var _image;
+  CroppedFile? _croppedFile;
   final picker = ImagePicker();
   late String dropdownvalue;
+  late String connections;
   FocusNode searchFocusNode = FocusNode();
   List<String> _checkedItems = [];
   List<String> _mItems = [];
@@ -65,6 +70,8 @@ class _UpdateSingleContactDetailsPageState
   bool showSpinner = false;
   bool isLoading = false;
   bool _validate = false;
+  String errorText = 'Name Can\'t Be Empty';
+  String _completePhnNo = '', updatedNo = '';
 
   @override
   void initState() {
@@ -73,11 +80,10 @@ class _UpdateSingleContactDetailsPageState
     //myController.addListener(_printLatestValue);
     //nameController.addListener(() { })
     dobController.text = ""; //set the initial value of text field
-
-
+// Store Connection name in mItems
+    getConnectionItemList(
+        ContactListPage.contactList, widget.contact.name.toString());
     valueInitialization();
-    getConnectionString();
-
   }
 
   void valueInitialization() {
@@ -85,6 +91,7 @@ class _UpdateSingleContactDetailsPageState
       nameController.text = "";
     } else {
       nameController.text = widget.contact.name.toString();
+      initName = widget.contact.name.toString();
     }
     // if (widget.contact.photo?.isEmpty ?? true) {
     //   photo = "";
@@ -95,7 +102,9 @@ class _UpdateSingleContactDetailsPageState
     if (widget.contact.phone_no?.isEmpty ?? true) {
       phoneController.text = "";
     } else {
-      phoneController.text = widget.contact.phone_no.toString();
+      //if(widget.contact.phone_no)
+      _completePhnNo = widget.contact.phone_no.toString();
+      phoneController.text = _getPhnInfo(widget.contact.phone_no!, 'no');
     }
 
     if (widget.contact.email?.isEmpty ?? true) {
@@ -109,7 +118,7 @@ class _UpdateSingleContactDetailsPageState
     } else {
       designationController.text = widget.contact.designation.toString();
     }
-    if(widget.contact.date_of_birth?.isEmpty ?? true) {
+    if (widget.contact.date_of_birth?.isEmpty ?? true) {
       //dobController.text = "";
     } else {
       dobController.text = widget.contact.date_of_birth.toString();
@@ -121,7 +130,6 @@ class _UpdateSingleContactDetailsPageState
       organizationController.text = widget.contact.organization.toString();
     }
 
-
     if (widget.contact.gender?.isEmpty ?? true) {
       dropdownvalue = 'Male';
       //genderController.text = "";
@@ -131,19 +139,24 @@ class _UpdateSingleContactDetailsPageState
     }
 
     if (widget.contact.address?.isEmpty ?? true) {
-      addressController.text = " ";
+      addressController.text = "";
     } else {
       addressController.text = widget.contact.address.toString();
     }
 
     if (widget.contact.social_media?.isEmpty ?? true) {
-      socialMediaController.text = " ";
+      socialMediaController.text = "";
     } else {
       socialMediaController.text = widget.contact.social_media.toString();
     }
+    if (widget.contact.connected_id.toString() == '[]') {
+      connectedController.text = "";
+    } else {
+      getConnectionString();
+    }
 
     if (widget.contact.note?.isEmpty ?? true) {
-      noteController.text = " ";
+      noteController.text = "";
     } else {
       noteController.text = widget.contact.note.toString();
     }
@@ -151,13 +164,28 @@ class _UpdateSingleContactDetailsPageState
     //     '$gender : $address : $connections : $socialLinks : $note');
   }
 
+  String _getPhnInfo(String comPhnNo, String type) {
+    String s = "+54-123456789123-AR";
+    final temp = comPhnNo.split('-');
+    print(temp);
+    if (temp.length != 3 && type == 'textCode') {
+      return 'BD';
+    } else if (temp.length != 3 && type == 'no') {
+      return comPhnNo;
+    } else if (type == 'textCode') {
+      return temp[2];
+    } else if (type == 'no') {
+      return temp[1];
+    } else if (type == 'noCode') {
+      return temp[0];
+    } else
+      return comPhnNo;
+  }
+
   String getConnectionString() {
     //Store Connection Contact in connectionsContact
     getConnectionsContact(widget.contact.connected_id.toString());
     print('Connection list: $connectionsContact');
-
-    // Store Connection name in mItems
-    getConnectionItemList(ContactListPage.contactList);
     //connections = " ";
     for (Contact x in connectionsContact) {
       _checkedItems.add(x.name.toString());
@@ -179,21 +207,64 @@ class _UpdateSingleContactDetailsPageState
         connectionsContact.add(x);
       }
     }
+    for (String s in list) {
+      bool check = isNumericUsing_tryParse(s);
+      if (check == false) {
+        connectionsContactString.add(s);
+      }
+    }
+    connections = "";
+    for (String s in connectionsContactString) {
+      connections = "$connections$s ";
+    }
+    setState(() {
+      connectedController.text = connections.toString();
+    });
     print("connectionsContact: $connectionsContact");
   }
 
-  void getConnectionItemList(List<Contact> contactList) {
+  void getConnectionItemList(List<Contact> contactList, String contactName) {
     for (Contact x in contactList) {
-      _mItems.add(x.name.toString());
+      if (contactName != x.name.toString()) {
+        _mItems.add(x.name.toString());
+      }
     }
   }
 
-  Future<void> submitForm(String name,String designation,String organization,String connected_id,
-      String phone_no,String email,String date_of_birth,String gender,String address,
-      String social_media,String note) async {
+  bool isNumericUsing_tryParse(String string) {
+    // Null or empty string is not a number
+    // if (string == null || string.isEmpty) {
+    //   return false;
+    // }
+
+    // Try to parse input string to number.
+    // Both integer and double work.
+    // Use int.tryParse if you want to check integer only.
+    // Use double.tryParse if you want to check double only.
+    final number = num.tryParse(string);
+
+    if (number == null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> submitForm(
+      String name,
+      String designation,
+      String organization,
+      String connected_id,
+      String phone_no,
+      String email,
+      String date_of_birth,
+      String gender,
+      String address,
+      String social_media,
+      String note) async {
     final prefs = await SharedPreferences.getInstance();
     String id = widget.contact.id.toString();
-    var uriData = 'http://scm.womenindigital.net/api/connection/$id/update';
+    var uriData = 'https://scm.womenindigital.net/api/connection/$id/update';
 
     Map<String, String> headers = {
       "Accept": 'application/json',
@@ -225,26 +296,26 @@ class _UpdateSingleContactDetailsPageState
 
     var request = http.MultipartRequest('POST', Uri.parse(uriData));
     if (kDebugMode) {
-      print("IMAGE $_image " );
+      print("IMAGE $_croppedFile ");
     }
-    if (_image != null ) {
+    if (_croppedFile != null) {
       //File f = await getImageFileFromAssets('images/profile.png');
       request.headers.addAll(headers);
       request.fields.addAll(body);
       request.files
-          .add(await http.MultipartFile.fromPath('photo', _image.path));
+          .add(await http.MultipartFile.fromPath('photo', _croppedFile!.path));
     } else {
-     // File f = await getImageFileFromAssets('images/profile-white.png');
+      // File f = await getImageFileFromAssets('images/profile-white.png');
       request.headers.addAll(headers);
       request.fields.addAll(body);
       //request.files.add(await http.MultipartFile.fromPath('photo', f.path));
     }
     var streamedResponse = await request.send();
-    print("STREAM "+streamedResponse.stream.toString());
+    print("STREAM " + streamedResponse.stream.toString());
     var response = await http.Response.fromStream(streamedResponse);
     print(response.body.toString());
     String rawData = response.body.toString().replaceAll("\"", ' ');
-    print ("RAW DATA " + rawData);
+    print("RAW DATA " + rawData);
     if (streamedResponse.statusCode == 200) {
       Navigator.pop(context);
       print('info uploaded  ' + _getPhotoID(rawData).toString() + ".");
@@ -263,13 +334,16 @@ class _UpdateSingleContactDetailsPageState
           social_media: social_media,
           note: note,
           created_by: prefs.getInt('loginID'));
-
+      Navigator.pop(context);
+      //Navigator.pop(context);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
               builder: ((context) => SingleContactDetailsPage(
-                contact: c,
-              ))));
+                    contact: c,
+                    token: ContactListPage.barerToken,
+                    isChanged: true,
+                  ))));
     } else {
       print('failed ${response.statusCode}');
     }
@@ -292,20 +366,29 @@ class _UpdateSingleContactDetailsPageState
     // print(photoString[1]);
   }
 
-
   String _getPhotoID(String rawDetails) {
     final value = rawDetails.split('data :');
-    String details = value[1].replaceAll(RegExp('[^-A-Za-z0-9,:._@ +]'), '');
-    final res = details.split(', ');
-    if (kDebugMode) {
-      print(res[14]);
+    String photo = '';
+    //String rawDetails = "{ message : Ok , data :{ id :91, created_at :null, updated_at :null, name : Elephant testing , designation :null, organization :null, connected_id : [81, 84, 107, 85, shanto Test test test test moumita] , phone_no :null, email :null, date_of_birth :null, gender :null, address :null, social_media :null, note :null, photo : 202303160957-image_cropper_1678960594713.jpg , favourite : false , created_by : 88 }}";
+    //final value = rawDetails.split('data :');
+    //print(value[1]);
+    value[1] = value[1].replaceAll('{', '');
+    value[1] = value[1].replaceAll('}', '');
+    //print(value[1]);
+
+    // String details = value[1].replaceAll(RegExp('[^-A-Za-z0-9,:._@ +]'), '');
+    //print(details);
+    final res = value[1].split(', ');
+
+    for (String s in res) {
+      //print (s);
+      final split = s.split(' :');
+      if (split[0] == 'photo') {
+        photo = split[1].trimLeft();
+        photo = photo.trimRight();
+      }
     }
-    final photoString = res[14].split(': ');
-    print("PHOTO STRING: "+ photoString[1].toString());
-    String photo = photoString[1].replaceAll(" ", '');
-    if (kDebugMode) {
-      print(photo);
-    }
+
     return photo;
   }
 
@@ -324,6 +407,9 @@ class _UpdateSingleContactDetailsPageState
     for (Contact x in selectedContact) {
       selectedContactIds.add(x.id.toString());
     }
+    if (connectedController.text.isNotEmpty) {
+      selectedContactIds.add(connectedController.text.toString());
+    }
     return selectedContactIds;
   }
 
@@ -332,6 +418,10 @@ class _UpdateSingleContactDetailsPageState
       children: [
         InkWell(
           onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
             Navigator.pop(context);
           },
           child: Container(
@@ -352,31 +442,142 @@ class _UpdateSingleContactDetailsPageState
     );
   }
 
+  bool isPresent(String name) {
+    bool status = false;
+    if (name == initName) {
+      return false;
+    } else {
+      for (Contact x in ContactListPage.contactList) {
+        // print("isPresent name: ${x.name} == $name");
+        if (name == x.name.toString()) {
+          status = true;
+        }
+      }
+    }
+
+    return status;
+  }
+
   Widget _updateButton() {
     return InkWell(
       onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
         setState(() {
           nameController.text.isEmpty ? _validate = true : _validate = false;
-          showSpinner = true;
-        });
 
-        if (nameController.text.isNotEmpty) {
+          bool status = isPresent(nameController.text.toString());
+          if (status == true) {
+            _validate = true;
+            errorText = 'Can\'t use same name';
+          } else {
+            _validate = false;
+            showSpinner = true;
+          }
+        });
+        if (showSpinner == true) {
+          showModalBottomSheet<void>(
+            context: context,
+            isDismissible: false,
+            builder: (BuildContext context) {
+              return Container(
+                height: 80,
+                color: Color(0xFF926AD3),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      SizedBox(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          backgroundColor: Colors.white,
+                        ),
+                        height: 18,
+                        width: 18,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "Please wait...",
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+          // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          //   backgroundColor: Color(0xFF926AD3),
+          //   content: Row(
+          //     children: [
+          //       SizedBox(
+          //         child: CircularProgressIndicator(
+          //           strokeWidth: 3,
+          //           backgroundColor: Color(0xFF9A9A9A),
+          //         ),
+          //         height: 14,
+          //         width: 14,
+          //       ),
+          //       SizedBox(
+          //         width: 10,
+          //       ),
+          //       Text(
+          //         "Please wait...",
+          //         style: TextStyle(fontSize: 14),
+          //       ),
+          //     ],
+          //   ),
+          //   //duration: Duration(milliseconds: 1500),
+          // ));
+        }
+
+        if (nameController.text.isNotEmpty && _validate == false) {
+          setState(() {
+            showSpinner = true;
+          });
           submitForm(
               nameController.text.toString(),
               designationController.text.toString(),
               organizationController.text.toString(),
               connectedController.text.toString(),
-              phoneController.text.toString(),
+              updatedNo,
               emailController.text.toString(),
               dobController.text.toString(),
               genderController.text.toString(),
               addressController.text.toString(),
               socialMediaController.text.toString(),
               noteController.text.toString());
-
         }
         //Navigator.pop(context);
       },
+      // onTap: () {
+      //   setState(() {
+      //     nameController.text.isEmpty ? _validate = true : _validate = false;
+      //     showSpinner = true;
+      //   });
+      //
+      //   if (nameController.text.isNotEmpty) {
+      //     submitForm(
+      //         nameController.text.toString(),
+      //         designationController.text.toString(),
+      //         organizationController.text.toString(),
+      //         connectedController.text.toString(),
+      //         phoneController.text.toString(),
+      //         emailController.text.toString(),
+      //         dobController.text.toString(),
+      //         genderController.text.toString(),
+      //         addressController.text.toString(),
+      //         socialMediaController.text.toString(),
+      //         noteController.text.toString());
+      //
+      //   }
+      //   //Navigator.pop(context);
+      // },
       child: Container(
         margin: const EdgeInsets.fromLTRB(0, 15, 20, 0),
         padding: const EdgeInsets.all(8),
@@ -384,14 +585,12 @@ class _UpdateSingleContactDetailsPageState
           color: Colors.black12,
           borderRadius: BorderRadius.all(Radius.circular(40)),
         ),
-        child: const Text(
-          ' Update ',
+        child: const Text(' Update ',
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.w500)),
-        ),
-
+      ),
     );
   }
 
@@ -429,7 +628,7 @@ class _UpdateSingleContactDetailsPageState
       final pickedFile = await picker.getImage(source: ImageSource.gallery);
       setState(() {
         if (pickedFile != null) {
-          _image = File(pickedFile.path);
+          _cropImage(pickedFile);
         } else {
           print('No image selected.');
         }
@@ -438,11 +637,30 @@ class _UpdateSingleContactDetailsPageState
       final pickedFile = await picker.getImage(source: ImageSource.camera);
       setState(() {
         if (pickedFile != null) {
-          _image = File(pickedFile.path);
+          _cropImage(pickedFile);
         } else {
           print('No image selected.');
         }
       });
+    }
+  }
+
+  /// Crop Image
+  Future<void> _cropImage(final _pickedFile) async {
+    if (_pickedFile != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: _pickedFile!.path,
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 100,
+        // maxWidth: 1080,
+        // maxHeight: 1080,
+        aspectRatio: CropAspectRatio(ratioX: 6.2, ratioY: 5),
+      );
+      if (croppedFile != null) {
+        setState(() {
+          _croppedFile = croppedFile;
+        });
+      }
     }
   }
 
@@ -502,11 +720,11 @@ class _UpdateSingleContactDetailsPageState
             children: [
               Center(
                 child: Container(
-                  child: (_image != null && _image.path != '/')
+                  child: (_croppedFile != null)
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
                           child: Image.file(
-                            File(_image!.path).absolute,
+                            File(_croppedFile!.path).absolute,
                             // _image,
                             width: width * (38 / 100),
                             height: height * (23 / 100),
@@ -518,33 +736,37 @@ class _UpdateSingleContactDetailsPageState
                             color: Color(0xfff3f3f4),
                             borderRadius: BorderRadius.all(Radius.circular(8)),
                           ),
-                    width: width * (38 / 100),
-                    height: height * (23 / 100),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child:
-                      Image.network(
-                        image+widget.contact.photo.toString(),fit: BoxFit.fitHeight,
-                        loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                                  : null,
+                          width: width * (38 / 100),
+                          height: height * (23 / 100),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(
+                              image + widget.contact.photo.toString(),
+                              fit: BoxFit.fitHeight,
+                              loadingBuilder: (BuildContext context,
+                                  Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, url, error) =>
+                                  Icon(Icons.error),
                             ),
-                          );
-                        },
-                        errorBuilder: (context, url, error) => Icon(Icons.error),
-                      ),
-                      //Image.network(image+widget.contact.photo.toString(),fit: BoxFit.fitHeight,),
-                    ),
+                            //Image.network(image+widget.contact.photo.toString(),fit: BoxFit.fitHeight,),
+                          ),
                         ),
                 ),
               ),
-              Positioned(bottom: 0, right: 15 , child: _cameraIcon()),
+              Positioned(bottom: 0, right: 15, child: _cameraIcon()),
 
               // Align(
               //   alignment: Alignment.bottomRight,
@@ -566,10 +788,13 @@ class _UpdateSingleContactDetailsPageState
   Widget _cameraIcon() {
     return const Padding(
       padding: EdgeInsets.all(8),
-      child:  CircleAvatar(
-        backgroundColor:  Color(0xFF926AD3),
+      child: CircleAvatar(
+        backgroundColor: Color(0xFF926AD3),
         radius: 20,
-        child: Icon(Icons.camera_alt,color: Colors.white,),
+        child: Icon(
+          Icons.camera_alt,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -662,15 +887,17 @@ class _UpdateSingleContactDetailsPageState
         children: [
           Expanded(
             child: TextField(
-              controller:
-                  genderController,
-              style: TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
+              controller: genderController,
+              style: TextStyle(
+                  color:
+                      Color(0xFF926AD3)), //editing controller of this TextField
               decoration: InputDecoration(
                   hintText: dropdownvalue,
                   suffixIcon: _genderSuffixPopUpMenu(),
                   prefixIcon: _genderPrefixPopUpMenu(),
                   enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+                    borderSide:
+                        BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
                   ),
                   fillColor: Colors.transparent,
                   filled: true),
@@ -695,31 +922,53 @@ class _UpdateSingleContactDetailsPageState
             children: _checkedItems
                 .map((e) => Chip(
                       backgroundColor: Color(0xFF926AD3),
-                      deleteIcon: Icon(Icons.close),
-                      label: Text(e,style: TextStyle(color: Colors.white),),
+                      deleteIcon: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                      ),
+                      onDeleted: () {
+                        setState(() {
+                          _mItems.add(e);
+                          _checkedItems.remove(e);
+                        });
+                      },
+                      label: Text(
+                        e,
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ))
                 .toList(),
           ),
           TextField(
-
+            controller: connectedController,
             style: const TextStyle(color: Color(0xFF9A9A9A)),
             //controller: dateController, //editing controller of this TextField
             decoration: InputDecoration(
                 hintText: hintText,
-                prefixIcon: icon,
-                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded),
+                prefixIcon: _iconCW(icon),
+                suffixIcon: _iconCW(Icon(Icons.keyboard_arrow_down_rounded)),
                 enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+                  borderSide:
+                      BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
                 ),
                 fillColor: Colors.transparent,
                 filled: true),
-            readOnly: true, //Clickable and not editable
-            onTap: () async {
-              _showMultiSelect();
-            },
+            // readOnly: true, //Clickable and not editable
+            //  onTap: () async {
+            //    _showMultiSelect();
+            //  },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _iconCW(Icon icon) {
+    return InkWell(
+      onTap: () async {
+        _showMultiSelect();
+      },
+      child: icon,
     );
   }
 
@@ -731,7 +980,8 @@ class _UpdateSingleContactDetailsPageState
       margin: EdgeInsets.symmetric(vertical: 10),
       child: TextField(
         controller: dobController,
-        style: TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
+        style: TextStyle(
+            color: Color(0xFF926AD3)), //editing controller of this TextField
         decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: icon,
@@ -780,27 +1030,53 @@ class _UpdateSingleContactDetailsPageState
       {bool isPassword = false}) {
     controller.selection =
         TextSelection.collapsed(offset: controller.text.length);
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: TextField(
-        //enabled: false, //Not clickable and not editable
-        keyboardType: inputType,
-        textInputAction: TextInputAction.next,
-        textCapitalization: type,
-        controller: controller,
-        obscureText: isPassword,
-        style: const TextStyle(color: Color(0xFF926AD3)),//editing controller of this TextField
-        decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: icon,
-            //suffixIcon: Icon(Icons.),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-            ),
-            fillColor: Colors.transparent,
-            filled: true),
-      ),
-    );
+    if (hintText == "Name") {
+      //TextEditingController controllerTitle,
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: TextField(
+          //enabled: false, //Not clickable and not editable
+          keyboardType: inputType,
+          textInputAction: TextInputAction.next,
+          textCapitalization: type,
+          controller: controller,
+          obscureText: isPassword,
+          style: const TextStyle(color: Color(0xFF926AD3)),
+          decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: icon,
+              errorText: _validate ? errorText : null,
+              //suffixIcon: Icon(Icons.),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+              ),
+              fillColor: Colors.transparent,
+              filled: true),
+        ),
+      );
+    } else {
+      //TextEditingController controllerTitle,
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: TextField(
+          controller: controller,
+          //enabled: false, //Not clickable and not editable
+          keyboardType: inputType,
+          textInputAction: TextInputAction.next,
+          textCapitalization: type,
+          obscureText: isPassword,
+          style: const TextStyle(color: Color(0xFF926AD3)),
+          decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: icon,
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+              ),
+              fillColor: Colors.transparent,
+              filled: true),
+        ),
+      );
+    }
     // if(hintText == 'Name') {
     //   if (value != " ") {
     //     controller.text = value;
@@ -841,7 +1117,39 @@ class _UpdateSingleContactDetailsPageState
     //   //TextEditingController controllerTitle,
     //
     // }
+  }
 
+  Widget _phoneEntryField() {
+    return Container(
+      margin: EdgeInsets.only(top: 10),
+      child: IntlPhoneField(
+        controller: phoneController,
+        //dropdownIcon: Icon(Icons.phone_rounded),
+        dropdownTextStyle: const TextStyle(color: Color(0xFF9A9A9A)),
+        //dropdownIconPosition: IconPosition.trailing,
+        style: const TextStyle(color: Color(0xFF926AD3)),
+        decoration: InputDecoration(
+          hintText: 'Phone',
+          prefixIcon: Icon(Icons.phone_rounded),
+          fillColor: Colors.transparent,
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+          ),
+        ),
+        initialCountryCode: _getPhnInfo(_completePhnNo, 'textCode').trim(),
+        onChanged: (phone) {
+          setState(() {
+            updatedNo = phone.countryCode +
+                "-" +
+                phone.number +
+                "-" +
+                phone.countryISOCode;
+          });
+          //phone.countryCode = _getPhnInfo(_completePhnNo, 'textCode').trim();
+          print(phone.completeNumber);
+        },
+      ),
+    );
   }
 
   Widget _textFieldWidget() {
@@ -851,7 +1159,7 @@ class _UpdateSingleContactDetailsPageState
         //TextInputType inputType, Icon icon, {bool isPassword = false}
         _entryField(
           "Name",
-         // name,
+          // name,
           nameController,
           TextCapitalization.words,
           TextInputType.name,
@@ -859,7 +1167,7 @@ class _UpdateSingleContactDetailsPageState
         ),
         _entryField(
           "Designation",
-         // designation,
+          // designation,
           designationController,
           TextCapitalization.words,
           TextInputType.text,
@@ -873,14 +1181,15 @@ class _UpdateSingleContactDetailsPageState
           TextInputType.text,
           Icon(Icons.work_rounded),
         ),
-        _entryField(
-          "Phone",
-          //phone_no,
-          phoneController,
-          TextCapitalization.none,
-          TextInputType.phone,
-          Icon(Icons.phone_rounded),
-        ),
+        _phoneEntryField(),
+        // _entryField(
+        //   "Phone",
+        //   //phone_no,
+        //   phoneController,
+        //   TextCapitalization.none,
+        //   TextInputType.phone,
+        //   Icon(Icons.phone_rounded),
+        // ),
         _entryField(
           "Email",
           //email,
@@ -939,27 +1248,40 @@ class _UpdateSingleContactDetailsPageState
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(width: width,height: (width * (870 / 1080)),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        height: (width * (870 / 1080)),
-                        width: width,
-                        child: Image.asset('assets/images/add-user.png'),
-                      ),
-                      Positioned(top: 90,width: width, child: Center(child: _imagePicker(height, width))),
-                    ],
-                  ),),
+                  Container(
+                    width: width,
+                    height: (width * (870 / 1080)),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          height: (width * (870 / 1080)),
+                          width: width,
+                          child: Image.asset('assets/images/add-user.png'),
+                        ),
+                        Positioned(
+                            top: 90,
+                            width: width,
+                            child: Center(child: _imagePicker(height, width))),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: 10),
                   Container(
-                    margin: EdgeInsets.only(left: 20,right: 20),
+                      margin: EdgeInsets.only(left: 20, right: 20),
                       child: _textFieldWidget()),
                 ],
               ),
             ),
-            Positioned(top: 0 ,height: (width * (300 / 1080)),width: width,child: Image.asset('assets/images/overlay.png', fit: BoxFit.fitWidth,)),
+            Positioned(
+                top: 0,
+                height: (width * (300 / 1080)),
+                width: width,
+                child: Image.asset(
+                  'assets/images/overlay.png',
+                  fit: BoxFit.fitWidth,
+                )),
             Positioned(top: 30, left: 0, child: _backButton()),
             Positioned(top: 30, right: 0, child: _updateButton()),
           ],

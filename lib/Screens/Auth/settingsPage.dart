@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import '../../Model/User.dart';
+import '../User/userProfilePage.dart';
 
 class SettingPage extends StatefulWidget {
-  const SettingPage({Key? key}) : super(key: key);
+  SettingPage({Key? key}) : super(key: key);
 
   @override
   State<SettingPage> createState() => _SettingPageState();
@@ -22,6 +25,51 @@ class _SettingPageState extends State<SettingPage> {
 
   String oldPassMassage = '';
   String conPassMassage = '';
+  bool _circularIndicator = false;
+
+  Future<void> updatePassword(String newPass) async {
+    final prefs = await SharedPreferences.getInstance();
+    int? id = prefs.getInt('loginID');
+    print(id);
+    ///api/profile/6/update_password
+    var uriData = 'https://scm.womenindigital.net/api/profile/$id/update_password';
+    Map<String, String> headers = {
+      "Accept": 'application/json',
+      'Authorization': 'Bearer ${prefs.getString('token')}'
+    };
+    Map<String, String> body = {
+      'password': newPass,
+    };
+    var req = http.MultipartRequest('Post', Uri.parse(uriData));
+    req.headers.addAll(headers);
+    req.fields.addAll(body);
+    var streamedResponse = await req.send();
+
+    var response = await http.Response.fromStream(streamedResponse);
+    //print(response.body.toString());
+    String rawData = response.body.toString().replaceAll("\"", ' ');
+    print ("RAW DATA " + rawData);
+    if (streamedResponse.statusCode == 200) {
+      prefs.setString('login-pass', newPass);
+      setState(() {
+        _circularIndicator = false;
+      });
+      Navigator.pop(context);
+      // Navigator.pushReplacement(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: ((context) => UserProfilePage(user: user, isChanged: true,))));
+
+    } else {
+      setState(() {
+      _circularIndicator = false;
+    });
+      print('failed ${response.statusCode}');
+    }
+
+  }
+
+
 
   void _toggle() {
     setState(() {
@@ -41,6 +89,10 @@ class _SettingPageState extends State<SettingPage> {
       children: [
         InkWell(
           onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
             Navigator.pop(context);
           },
           child: Container(
@@ -266,9 +318,13 @@ class _SettingPageState extends State<SettingPage> {
           });
           if(newPass.isNotEmpty && conPass.isNotEmpty) {
             if(newPass == conPass) {
+              setState(() {
+                _circularIndicator = true;
+              });
+              updatePassword(newPass);
               //Change pass word code will be here
 
-              Navigator.pop(context);
+              //Navigator.pop(context);
               // Navigator.pushReplacement(
               //     context,
               //     MaterialPageRoute(
@@ -317,11 +373,34 @@ class _SettingPageState extends State<SettingPage> {
           //     end: Alignment.centerRight,
           //     colors: [Colors.white70, Colors.white])
         ),
-        child: Text(
+        child: (_circularIndicator)
+            ? Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                backgroundColor: Color(0xFF9A9A9A),
+              ),
+              height: 12,
+              width: 12,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(
+              'Please Wait...',
+              style: TextStyle(
+                  color: Color(0xFF9A9A9A), fontWeight: FontWeight.bold),
+            ),
+          ],
+        )
+            : Text(
           _isShow ? 'Next' : 'Update',
           style:
-              TextStyle(color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
+          TextStyle(color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
         ),
+
       ),
     );
   }

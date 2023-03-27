@@ -5,8 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:community_app/Model/contact.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Model/User.dart';
@@ -38,6 +40,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
   late String photo;
   // Initial Selected Value
   var _image;
+  CroppedFile? _croppedFile;
   final picker = ImagePicker();
   late String dropdownvalue;
   FocusNode searchFocusNode = FocusNode();
@@ -47,6 +50,8 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
   bool showSpinner = false;
   bool isLoading = false;
   bool _validate = false;
+  String errorText = 'Name Can\'t Be Empty';
+  String _completePhnNo = '', updatedNo = '';
   late List<User> person = [];
 
   @override
@@ -71,7 +76,9 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     if (widget.user.phone_no?.isEmpty ?? true) {
       phoneController.text = "";
     } else {
-      phoneController.text = widget.user.phone_no.toString();
+      //if(widget.contact.phone_no)
+      _completePhnNo = widget.user.phone_no.toString();
+      phoneController.text = _getPhnInfo(widget.user.phone_no!, 'no');
     }
 
     if (widget.user.email?.isEmpty ?? true) {
@@ -114,25 +121,43 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     }
 
     if (widget.user.address?.isEmpty ?? true) {
-      addressController.text = " ";
+      addressController.text = "";
     } else {
       addressController.text = widget.user.address.toString();
     }
 
     if (widget.user.social_media?.isEmpty ?? true) {
-      socialMediaController.text = " ";
+      socialMediaController.text = "";
     } else {
       socialMediaController.text = widget.user.social_media.toString();
     }
 
     if (widget.user.note?.isEmpty ?? true) {
-      noteController.text = " ";
+      noteController.text = "";
     } else {
       noteController.text = widget.user.note.toString();
     }
     // print('$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
     //     '$gender : $address : $connections : $socialLinks : $note');
   }
+  String _getPhnInfo(String comPhnNo, String type) {
+    String s = "+54-123456789123-AR";
+    final temp = comPhnNo.split('-');
+    print(temp);
+    if (temp.length != 3 && type == 'textCode') {
+      return 'BD';
+    } else if (temp.length != 3 && type == 'no') {
+      return comPhnNo;
+    } else if (type == 'textCode') {
+      return temp[2];
+    } else if (type == 'no') {
+      return temp[1];
+    } else if (type == 'noCode') {
+      return temp[0];
+    } else
+      return comPhnNo;
+  }
+
   ///api/profile/update-profile
   Future<void> submitForm(String name,String designation,String organization,
       String phone_no,String email,String date_of_birth,String gender,String address,
@@ -141,7 +166,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     String id = widget.user.id.toString();
     print(id);
     ///api/profile/3/update-profile
-    var uriData = 'http://scm.womenindigital.net/api/profile/$id/update-profile';
+    var uriData = 'https://scm.womenindigital.net/api/profile/$id/update-profile';
    Map<String, String> headers = {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
@@ -168,13 +193,13 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     // date_of_birth, gender, address, social_media, note, photo
     //http://scm.womenindigital.net/api/connection/19/update
     var req = http.MultipartRequest('Post', Uri.parse(uriData));
-    print("IMAGE $_image " );
-    if(_image != null){
+    print("IMAGE $_croppedFile " );
+    if(_croppedFile != null){
       print("IF");
       req.headers.addAll(headers);
       req.fields.addAll(body);
       req.files
-          .add(await http.MultipartFile.fromPath('photo', _image.path));
+          .add(await http.MultipartFile.fromPath('photo', _croppedFile!.path));
     }
     else {
       print("ELSE");
@@ -207,7 +232,8 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     String rawData = response.body.toString().replaceAll("\"", ' ');
     print ("RAW DATA " + rawData);
     if (streamedResponse.statusCode == 200) {
-      Navigator.pop(context);
+      //Navigator.pop(context);
+      print("PHOTO " + _getPhotoID(rawData));
       User user = User (
         id: widget.user.id,
         name: name,
@@ -225,7 +251,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: ((context) => UserProfilePage(user: user))));
+              builder: ((context) => UserProfilePage(user: user, isChanged: true,))));
 
     } else {
       print('failed ${response.statusCode}');
@@ -238,7 +264,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
 
     ///api/user/10/show
     String url =
-        'http://scm.womenindigital.net/api/user/${prefs.getInt('loginID')}/show';
+        'https://scm.womenindigital.net/api/user/${prefs.getInt('loginID')}/show';
 
     final response = await http.get(Uri.parse(url), headers: {
       "Accept": 'application/json',
@@ -265,7 +291,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: ((context) => UserProfilePage(user: person[i]))));
+                builder: ((context) => UserProfilePage(user: person[i], isChanged: true,))));
       }
 
     }
@@ -294,6 +320,10 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       children: [
         InkWell(
           onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
             Navigator.pop(context);
           },
           child: Container(
@@ -303,7 +333,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
               color: Colors.black12,
               borderRadius: BorderRadius.all(Radius.circular(40)),
             ),
-            child: const Text('  Back  ',
+            child: const Text('    Exit    ',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -313,7 +343,36 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       ],
     );
   }
-
+  Future<void> _showDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Exit'),
+          content: ListBody(
+            children: const <Widget>[
+              Text('If you exit all input text will vanish.'),
+              Text('Do you really want to exit?'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => {
+                Navigator.pop(context, 'Cancel'),
+                Navigator.pop(context),
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'OK'),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
   Widget _updateButton() {
     return InkWell(
       onTap: () {
@@ -321,13 +380,71 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
           nameController.text.isEmpty ? _validate = true : _validate = false;
           showSpinner = true;
         });
+        if (showSpinner == true) {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 80,
+                color: Color(0xFF926AD3),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      SizedBox(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          backgroundColor: Colors.white,
+                        ),
+                        height: 18,
+                        width: 18,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "Please wait...",
+                        style: TextStyle(fontSize: 18,color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+          // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          //   backgroundColor: Color(0xFF926AD3),
+          //   content: Row(
+          //     children: [
+          //       SizedBox(
+          //         child: CircularProgressIndicator(
+          //           strokeWidth: 3,
+          //           backgroundColor: Color(0xFF9A9A9A),
+          //         ),
+          //         height: 14,
+          //         width: 14,
+          //       ),
+          //       SizedBox(
+          //         width: 10,
+          //       ),
+          //       Text(
+          //         "Please wait...",
+          //         style: TextStyle(fontSize: 14),
+          //       ),
+          //     ],
+          //   ),
+          //   //duration: Duration(milliseconds: 1500),
+          // ));
+        }
 
-        if (nameController.text.isNotEmpty) {
+        if (nameController.text.isNotEmpty && _validate == false) {
+
           submitForm(
               nameController.text.toString(),
               designationController.text.toString(),
               organizationController.text.toString(),
-              phoneController.text.toString(),
+              updatedNo,
               emailController.text.toString(),
               dobController.text.toString(),
               genderController.text.toString(),
@@ -360,8 +477,8 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     if (status == 1) {
       final pickedFile = await picker.getImage(source: ImageSource.gallery);
       setState(() {
-        if (pickedFile != null) {
-          _image = File(pickedFile.path);
+        if(pickedFile != null) {
+          _cropImage(pickedFile);
         } else {
           print('No image selected.');
         }
@@ -369,12 +486,31 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     } else if (status == 2) {
       final pickedFile = await picker.getImage(source: ImageSource.camera);
       setState(() {
-        if (pickedFile != null) {
-          _image = File(pickedFile.path);
+        if(pickedFile != null) {
+          _cropImage(pickedFile);
         } else {
           print('No image selected.');
         }
       });
+    }
+  }
+
+  /// Crop Image
+  Future<void> _cropImage(final _pickedFile) async {
+    if (_pickedFile != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: _pickedFile!.path,
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 100,
+        // maxWidth: 1080,
+        // maxHeight: 1080,
+        aspectRatio: CropAspectRatio(ratioX: 6.2, ratioY: 5),
+      );
+      if (croppedFile != null) {
+        setState(() {
+          _croppedFile = croppedFile;
+        });
+      }
     }
   }
 
@@ -434,11 +570,11 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
             children: [
               Center(
                 child: Container(
-                  child: (_image != null && _image.path != '/')
+                  child: (_croppedFile != null)
                       ? ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.file(
-                      File(_image!.path).absolute,
+                      File(_croppedFile!.path).absolute,
                       // _image,
                       width: width * (38 / 100),
                       height: height * (23 / 100),
@@ -680,7 +816,32 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
               filled: true),
         ),
       );
-    } else {
+    }
+    else if (hintText == 'Name') {
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: TextField(
+          //enabled: false, //Not clickable and not editable
+          keyboardType: inputType,
+          textInputAction: TextInputAction.next,
+          textCapitalization: type,
+          controller: controller,
+          obscureText: isPassword,
+          style: const TextStyle(color: Color(0xFF926AD3)),
+          decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: icon,
+              errorText: _validate ? errorText : null,
+              //suffixIcon: Icon(Icons.),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+              ),
+              fillColor: Colors.transparent,
+              filled: true),
+        ),
+      );
+    }
+    else {
       return Container(
         margin: EdgeInsets.symmetric(vertical: 10),
         child: TextField(
@@ -704,6 +865,38 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       );
     }
 
+  }
+
+  Widget _phoneEntryField() {
+    return Container(
+      margin: EdgeInsets.only(top: 10),
+      child: IntlPhoneField(
+        controller: phoneController,
+        //dropdownIcon: Icon(Icons.phone_rounded),
+        dropdownTextStyle: const TextStyle(color: Color(0xFF9A9A9A)),
+        //dropdownIconPosition: IconPosition.trailing,
+        style: const TextStyle(color: Color(0xFF926AD3)),
+        decoration: InputDecoration(
+          hintText: 'Phone',
+          prefixIcon:  Icon(Icons.phone_rounded),
+          fillColor: Colors.transparent,
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
+          ),
+        ),
+        initialCountryCode: _getPhnInfo(_completePhnNo, 'textCode').trim(),
+        onChanged: (phone) {
+          setState(() {
+            updatedNo = phone.countryCode +
+                "-" +
+                phone.number +
+                "-" +
+                phone.countryISOCode;
+          });
+          print(phone.completeNumber);
+        },
+      ),
+    );
   }
 
   Widget _textFieldWidget() {
@@ -735,22 +928,16 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
           TextInputType.text,
           Icon(Icons.work_rounded),
         ),
-        _entryField(
-          "Phone",
-          //phone_no,
-          phoneController,
-          TextCapitalization.none,
-          TextInputType.phone,
-          Icon(Icons.phone_rounded),
-        ),
-        _entryField(
-          "Email",
-          //email,
-          emailController,
-          TextCapitalization.none,
-          TextInputType.emailAddress,
-          Icon(Icons.email_rounded),
-        ),
+        _phoneEntryField(),
+        // _entryField(
+        //   "Phone",
+        //   //phone_no,
+        //   phoneController,
+        //   TextCapitalization.none,
+        //   TextInputType.phone,
+        //   Icon(Icons.phone_rounded),
+        // ),
+
         _dateOfBirth("Birthday", Icon(Icons.cake_rounded)),
         _genderDropDown("Male", Icon(Icons.calendar_today)),
         _entryField(

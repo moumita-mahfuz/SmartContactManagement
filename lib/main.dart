@@ -36,9 +36,11 @@ class MyApp extends StatelessWidget {
     },
     );
     final textTheme = Theme.of(context).textTheme;
+
     return MaterialApp(
       title: 'Smart Contact Management',
         theme: ThemeData(
+          //textTheme: TextTheme(subtitle1: TextStyle( color: Colors.white, fontSize: 18,),),
             primarySwatch: myColor,
           unselectedWidgetColor: Colors.white,
           fontFamily: 'Montserrat',

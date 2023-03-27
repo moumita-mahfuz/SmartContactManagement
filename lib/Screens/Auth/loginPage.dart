@@ -22,10 +22,9 @@ class _LoginPageState extends State<LoginPage> {
   // Initially password is obscure
   bool _obscureText = true;
   Icon icon = Icon(Icons.visibility_off);
-
-  bool _emaiValidate = false;
+  bool _emailValidate = false;
   bool _passValidate = false;
-
+  bool _circularIndicator = false;
   // Toggles the password show status
   void _toggle() {
     setState(() {
@@ -44,10 +43,14 @@ class _LoginPageState extends State<LoginPage> {
   void login(String email, password) async {
     try {
       Response response = await post(
-          Uri.parse('http://scm.womenindigital.net/api/auth/login'),
+          //https://scm.womenindigital.net/api/auth/login
+          Uri.parse('https://scm.womenindigital.net/api/auth/login'),
           body: {'email': email, 'password': password});
 
       if (response.statusCode == 200) {
+        setState(() {
+          _circularIndicator = false;
+        });
         var data = jsonDecode(response.body.toString());
         final prefs = await SharedPreferences.getInstance();
         prefs.setBool('isLoggedIn', true);
@@ -64,6 +67,9 @@ class _LoginPageState extends State<LoginPage> {
         print(data['data']['id']);
         print('Login successfully');
       } else {
+        setState(() {
+          _circularIndicator = false;
+        });
         print('failed' + response.statusCode.toString());
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           backgroundColor: Color(0xFF926AD3),
@@ -75,6 +81,9 @@ class _LoginPageState extends State<LoginPage> {
         ));
       }
     } catch (e) {
+      setState(() {
+        _circularIndicator = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         backgroundColor: Color(0xFF926AD3),
         content: Text(
@@ -113,7 +122,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 5,),
+              SizedBox(
+                height: 5,
+              ),
               const Text(
                 "Smart Contact Management",
                 textAlign: TextAlign.center,
@@ -136,9 +147,7 @@ class _LoginPageState extends State<LoginPage> {
       alignment: Alignment.centerLeft,
       child: const Text('Welcome!',
           style: TextStyle(
-              color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.bold)),
+              color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -163,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white), //<-- SEE HERE
               ),
-              errorText: _emaiValidate ? 'Email Can\'t Be Empty' : null,
+              errorText: _emailValidate ? 'Email Can\'t Be Empty' : null,
               fillColor: Colors.transparent,
               filled: true)),
     );
@@ -201,14 +210,26 @@ class _LoginPageState extends State<LoginPage> {
   Widget _submitButton() {
     return GestureDetector(
       onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
         setState(() {
-          emailController.text.isEmpty ? _emaiValidate = true : _emaiValidate = false;
-          passwordController.text.isEmpty ? _passValidate = true : _passValidate = false;
+          emailController.text.isEmpty
+              ? _emailValidate = true
+              : _emailValidate = false;
+          passwordController.text.isEmpty
+              ? _passValidate = true
+              : _passValidate = false;
         });
 
-        if(emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+        if (emailController.text.isNotEmpty &&
+            passwordController.text.isNotEmpty) {
           login(emailController.text.toString(),
               passwordController.text.toString());
+          setState(() {
+            _circularIndicator = true;
+          });
         }
       },
       child: Container(
@@ -230,11 +251,33 @@ class _LoginPageState extends State<LoginPage> {
           //     end: Alignment.centerRight,
           //     colors: [Colors.white70, Colors.white])
         ),
-        child: const Text(
-          'Login',
-          style:
-              TextStyle(color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
-        ),
+        child: (_circularIndicator)
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      backgroundColor: Color(0xFF9A9A9A),
+                    ),
+                    height: 12,
+                    width: 12,
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    'Please Wait...',
+                    style: TextStyle(
+                        color: Color(0xFF9A9A9A), fontWeight: FontWeight.bold),
+                  ),
+                ],
+              )
+            : Text(
+                'Login',
+                style: TextStyle(
+                    color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
@@ -242,6 +285,10 @@ class _LoginPageState extends State<LoginPage> {
   Widget _forgetPassword() {
     return GestureDetector(
       onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => ForgetPasswordPage()));
       },
@@ -270,6 +317,10 @@ class _LoginPageState extends State<LoginPage> {
         ),
         GestureDetector(
           onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (context) => SignUpPage()));
           },
@@ -294,8 +345,8 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: const Text(
               'Create',
-              style:
-              TextStyle(color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -433,6 +484,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 20),
 
                   _submitButton(),
+                  //_loginButton(),
                   _forgetPassword(),
                   //_divider(),
                   //_facebookButton(),
