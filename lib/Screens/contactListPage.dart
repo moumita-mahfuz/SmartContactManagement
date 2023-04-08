@@ -12,9 +12,11 @@ import '../Model/User.dart';
 import '../Model/contact.dart';
 import 'Auth/loginPage.dart';
 import 'Contact/singleContactDetailsPage.dart';
+import 'Group/groupListPage.dart';
 import 'User/userProfilePage.dart';
 import 'customSearchDelegate.dart';
 import 'Contact/newContactAddPage.dart';
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
 
 class ContactListPage extends StatefulWidget {
   final String token;
@@ -72,7 +74,7 @@ class _ContactListPageState extends State<ContactListPage> {
         'Authorization': 'Bearer ${prefs.getString('token')}'
       });
       var data = jsonDecode(response.body.toString());
-      // print(response.body.toString());
+       print(response.body.toString());
       if (response.statusCode == 200) {
         for (Map i in data) {
           // print("photo:   $i['photo']");
@@ -97,25 +99,37 @@ class _ContactListPageState extends State<ContactListPage> {
         //print("ContactListPage Contact List: ${ContactListPage.contactList}");
         //return ContactListPage.contactList;
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        //   backgroundColor: Color(0xFF926AD3),
+        //   content: Text(
+        //     "Error Code: " + response.statusCode.toString() + "!",
+        //     style: TextStyle(fontSize: 14),
+        //   ),
+        //   duration: Duration(milliseconds: 2000),
+        // ));
+        Get.snackbar(
+          "Error Code: " + response.statusCode.toString() + "!",
+          "Please check your internet connection!",
+          colorText: Colors.white,
+          //icon: Icon(Icons.person, color: Colors.white),
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Color(0xFF926AD3),
-          content: Text(
-            "Error Code: " + response.statusCode.toString() + "!",
-            style: TextStyle(fontSize: 14),
-          ),
-          duration: Duration(milliseconds: 2000),
-        ));
+          duration: Duration(seconds: 4),
+          isDismissible: true,
+        );
       }
     } on Exception catch (e) {
       // TODO
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Color(0xFF926AD3),
-        content: Text(
-          '$e!',
-          style: TextStyle(fontSize: 14),
-        ),
-        duration: Duration(milliseconds: 2000),
-      ));
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
       print(e.toString());
     }
     if (futureContactList.toString().isEmpty) {
@@ -123,65 +137,6 @@ class _ContactListPageState extends State<ContactListPage> {
     }
     return ContactListPage.contactList;
   }
-
-  // Future<List<Contact>> getFavouriteListApi() async {
-  //   setState(() {
-  //     ContactListPage.favouriteList.clear();
-  //   });
-  //   final prefs = await SharedPreferences.getInstance();
-  //   ContactListPage.barerToken = 'Bearer ${prefs.getString('token')}';
-  //   String url =
-  //       'https://scm.womenindigital.net/api/${prefs.getInt('loginID')}/allConnections';
-  //
-  //   try {
-  //     final response = await http.get(Uri.parse(url), headers: {
-  //       "Accept": 'application/json',
-  //       'Authorization': 'Bearer ${prefs.getString('token')}'
-  //     });
-  //     var data = jsonDecode(response.body.toString());
-  //     // print(response.body.toString());
-  //     if (response.statusCode == 200) {
-  //       for (Map i in data) {
-  //         // print("photo:   $i['photo']");
-  //         print("STATUS " + i['favourite']);
-  //         //print("name "+ i['name']);
-  //         bool status = isPresent(i['name']);
-  //         if (status == false) {
-  //           //tempList.add(Contact.fromJson(i));
-  //           bool isFav = isFavourite(i['favourite']);
-  //           if (isFav == true) {
-  //             ContactListPage.favouriteList.add(Contact.fromJson(i));
-  //           }
-  //         }
-  //       }
-  //
-  //       //print("ContactListPage Contact List: ${ContactListPage.contactList}");
-  //       //return ContactListPage.favouriteList;
-  //     }
-  //     else {
-  //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-  //         backgroundColor: Color(0xFF926AD3),
-  //         content: Text(
-  //           "Error Code: " + response.statusCode.toString() +"!" ,
-  //           style: TextStyle(fontSize: 14),
-  //         ),
-  //         duration: Duration(milliseconds: 2000),
-  //       ));
-  //     }
-  //   } catch (e) {
-  //     // TODO
-  //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-  //       backgroundColor: Color(0xFF926AD3),
-  //       content: Text(
-  //         '$e!',
-  //         style: TextStyle(fontSize: 14),
-  //       ),
-  //       duration: Duration(milliseconds: 2000),
-  //     ));
-  //     print(e.toString());
-  //   }
-  //   return ContactListPage.favouriteList;
-  // }
 
   bool isFavourite(String status) {
     if (status == 'true') {
@@ -229,22 +184,25 @@ class _ContactListPageState extends State<ContactListPage> {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body.toString());
         prefs.setBool('isLoggedIn', false);
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: ((context) => LoginPage())));
+        Get.offAll(LoginPage());
+        // Navigator.pushReplacement(
+        //     context, MaterialPageRoute(builder: ((context) => LoginPage())));
 
         print('Logout successfully');
       } else {
         print('failed${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Color(0xFF926AD3),
-        content: Text(
-          '$e!',
-          style: TextStyle(fontSize: 14),
-        ),
-        duration: Duration(milliseconds: 2000),
-      ));
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
       print(e.toString());
     }
   }
@@ -322,15 +280,25 @@ class _ContactListPageState extends State<ContactListPage> {
                     onTap: () {
                       if (contact.email?.isEmpty ?? true) {
                         setState(() {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
+                          // ScaffoldMessenger.of(context)
+                          //     .showSnackBar(const SnackBar(
+                          //   backgroundColor: Color(0xFF926AD3),
+                          //   content: Text(
+                          //     "eMail address is not saved!",
+                          //     style: TextStyle(fontSize: 14),
+                          //   ),
+                          //   duration: Duration(milliseconds: 1000),
+                          // ));
+                          Get.snackbar(
+                            "Warning",
+                            "Email address is not saved!",
+                            colorText: Colors.white,
+                            //icon: Icon(Icons.person, color: Colors.white),
+                            snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: Color(0xFF926AD3),
-                            content: Text(
-                              "eMail address is not saved!",
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            duration: Duration(milliseconds: 1000),
-                          ));
+                            duration: Duration(seconds: 4),
+                            isDismissible: true,
+                          );
                         });
                       } else {
                         final mailtoLink = Mailto(
@@ -361,15 +329,25 @@ class _ContactListPageState extends State<ContactListPage> {
                               _launched = _makePhoneCall(contact.phone_no!);
                             })
                         : () => setState(() {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                backgroundColor: Color(0xFF926AD3),
-                                content: Text(
-                                  "Phone number is not saved!",
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                duration: Duration(milliseconds: 1000),
-                              ));
+                              // ScaffoldMessenger.of(context)
+                              //     .showSnackBar(const SnackBar(
+                              //   backgroundColor: Color(0xFF926AD3),
+                              //   content: Text(
+                              //     "Phone number is not saved!",
+                              //     style: TextStyle(fontSize: 14),
+                              //   ),
+                              //   duration: Duration(milliseconds: 1000),
+                              // ));
+                      Get.snackbar(
+                        "Warning",
+                        "Phone number is not saved!",
+                        colorText: Colors.white,
+                        //icon: Icon(Icons.person, color: Colors.white),
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Color(0xFF926AD3),
+                        duration: Duration(seconds: 4),
+                        isDismissible: true,
+                      );
                             }),
                     child: Icon(
                       Icons.call,
@@ -394,15 +372,25 @@ class _ContactListPageState extends State<ContactListPage> {
                     onTap: () {
                       if (contact.phone_no?.isEmpty ?? true) {
                         setState(() {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
+                          // ScaffoldMessenger.of(context)
+                          //     .showSnackBar(const SnackBar(
+                          //   backgroundColor: Color(0xFF926AD3),
+                          //   content: Text(
+                          //     "Phone number is not saved!",
+                          //     style: TextStyle(fontSize: 14),
+                          //   ),
+                          //   duration: Duration(milliseconds: 1000),
+                          // ));
+                          Get.snackbar(
+                            "Warning",
+                            "Phone number is not saved!",
+                            colorText: Colors.white,
+                            //icon: Icon(Icons.person, color: Colors.white),
+                            snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: Color(0xFF926AD3),
-                            content: Text(
-                              "Phone number is not saved!",
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            duration: Duration(milliseconds: 1000),
-                          ));
+                            duration: Duration(seconds: 4),
+                            isDismissible: true,
+                          );
                         });
                       } else {
                         _sendingSMS(contact.phone_no!);
@@ -421,15 +409,20 @@ class _ContactListPageState extends State<ContactListPage> {
 
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SingleContactDetailsPage(
-                          contact: contact,
-                          token: ContactListPage.barerToken,
-                          isChanged: false,
-                        ),
-                      ));
+                  // Get.to(SingleContactDetailsPage(
+                  //   contact: contact,
+                  //   token: ContactListPage.barerToken,
+                  //   isChanged: false,
+                  // ));
+                  // Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //       builder: (context) => SingleContactDetailsPage(
+                  //         contact: contact,
+                  //         token: ContactListPage.barerToken,
+                  //         isChanged: false,
+                  //       ),
+                  //     ));
                 },
                 child: Text("View Details"),
               ),
@@ -443,12 +436,15 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget _floatingActionButton() {
     return InkWell(
       onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => NewContactAddPage(
-                      contactList: ContactListPage.contactList,
-                    )));
+        Get.to(NewContactAddPage(
+          contactList: ContactListPage.contactList,
+        ));
+        // Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //         builder: (context) => NewContactAddPage(
+        //               contactList: ContactListPage.contactList,
+        //             )));
       },
       child: isFabVisible
           ? FloatingActionButton(
@@ -461,13 +457,15 @@ class _ContactListPageState extends State<ContactListPage> {
                 //         builder: (context) => NewContactAddPage(
                 //               contactList: ContactListPage.contactList,
                 //             )));
-
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => NewContactAddPage(
-                              contactList: ContactListPage.contactList,
-                            )));
+                Get.to(NewContactAddPage(
+                  contactList: ContactListPage.contactList,
+                ));
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (context) => NewContactAddPage(
+                //               contactList: ContactListPage.contactList,
+                //             )));
               },
               child: const Icon(Icons.person_add_alt_1_rounded),
             )
@@ -518,14 +516,24 @@ class _ContactListPageState extends State<ContactListPage> {
       } else {}
     } catch (e) {
       // TODO
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //   backgroundColor: Color(0xFF926AD3),
+      //   content: Text(
+      //     '$e!',
+      //     style: TextStyle(fontSize: 14),
+      //   ),
+      //   duration: Duration(milliseconds: 2000),
+      // ));
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Color(0xFF926AD3),
-        content: Text(
-          '$e!',
-          style: TextStyle(fontSize: 14),
-        ),
-        duration: Duration(milliseconds: 2000),
-      ));
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
       print(e.toString());
     }
   }
@@ -554,15 +562,27 @@ class _ContactListPageState extends State<ContactListPage> {
               child: Row(
                 children: const [
                   Icon(
-                    Icons.account_circle_rounded,
+                    Icons.group_rounded,
                     color: Color(0xFF926AD3),
                   ),
-                  Text(" My Account"),
+                  Text(" Groups"),
                 ],
               ),
             ),
             PopupMenuItem<int>(
               value: 1,
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.account_circle_rounded,
+                    color: Color(0xFF926AD3),
+                  ),
+                  Text(" Profile"),
+                ],
+              ),
+            ),
+            PopupMenuItem<int>(
+              value: 2,
               child: Row(
                 children: const [
                   Icon(
@@ -574,7 +594,7 @@ class _ContactListPageState extends State<ContactListPage> {
               ),
             ),
             PopupMenuItem<int>(
-              value: 2,
+              value: 3,
               child: Row(
                 children: const [
                   Icon(
@@ -589,26 +609,34 @@ class _ContactListPageState extends State<ContactListPage> {
         },
         onSelected: (value) async {
           if (value == 0) {
+            Get.to(GroupListPage());
+          }
+          if (value == 1) {
             if (kDebugMode) {
               print("My account menu is selected.");
             }
             //widget.contact.favourite?.isEmpty ?? true
             if (ContactListPage.user!.isNotEmpty ?? true) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) => UserProfilePage(
-                            user: ContactListPage.user[0],
-                            isChanged: false,
-                          ))));
+              Get.to(UserProfilePage(
+                user: ContactListPage.user[0],
+                isChanged: false,
+              ));
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: ((context) => UserProfilePage(
+              //               user: ContactListPage.user[0],
+              //               isChanged: false,
+              //             ))));
             }
-          } else if (value == 1) {
+          } else if (value == 2) {
             if (kDebugMode) {
               print("Settings menu is selected.");
             }
-            Navigator.push(context,
-                MaterialPageRoute(builder: ((context) => SettingPage())));
-          } else if (value == 2) {
+            Get.to(SettingPage());
+            // Navigator.push(context,
+            //     MaterialPageRoute(builder: ((context) => SettingPage())));
+          } else if (value == 3) {
             // final prefs = await SharedPreferences.getInstance();
             // prefs.setBool('isLoggedIn',false);
             // Navigator.pushReplacement(context, MaterialPageRoute(builder: ((context) => LoginPage())));
@@ -658,14 +686,16 @@ class _ContactListPageState extends State<ContactListPage> {
       }
     } on Exception catch (e) {
       // TODO
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Color(0xFF926AD3),
-        content: Text(
-          '$e!',
-          style: TextStyle(fontSize: 14),
-        ),
-        duration: Duration(milliseconds: 2000),
-      ));
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
       print(e.toString());
     }
   }
@@ -786,13 +816,13 @@ class _ContactListPageState extends State<ContactListPage> {
                                   color: Colors.white,
                                 ));
                               } else {
-                                snapshot.data!.sort((a, b) {
-                                  return a.name
-                                      .toString()
-                                      .toLowerCase()
-                                      .compareTo(
-                                          b.name.toString().toLowerCase());
-                                });
+                                // snapshot.data!.sort((a, b) {
+                                //   return a.name
+                                //       .toString()
+                                //       .toLowerCase()
+                                //       .compareTo(
+                                //           b.name.toString().toLowerCase());
+                                // });
                                 return AlphabeticScrollView(items: snapshot.data!);
                               }
                             },

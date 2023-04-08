@@ -14,6 +14,8 @@ import 'package:http/http.dart' as http;
 import '../../Model/contact.dart';
 import '../../Widget/bezierContainer.dart';
 import '../../Widget/multiSelectDropDown.dart';
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
+
 
 class UpdateSingleContactDetailsPage extends StatefulWidget {
   final Contact contact;
@@ -317,7 +319,7 @@ class _UpdateSingleContactDetailsPageState
     String rawData = response.body.toString().replaceAll("\"", ' ');
     print("RAW DATA " + rawData);
     if (streamedResponse.statusCode == 200) {
-      Navigator.pop(context);
+     // Navigator.pop(context);
       print('info uploaded  ' + _getPhotoID(rawData).toString() + ".");
       Contact c = Contact(
           id: widget.contact.id,
@@ -334,16 +336,23 @@ class _UpdateSingleContactDetailsPageState
           social_media: social_media,
           note: note,
           created_by: prefs.getInt('loginID'));
-      Navigator.pop(context);
       //Navigator.pop(context);
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: ((context) => SingleContactDetailsPage(
-                    contact: c,
-                    token: ContactListPage.barerToken,
-                    isChanged: true,
-                  ))));
+      //Navigator.pop(context);
+      Get.off(SingleContactDetailsPage(
+        contactID: c.id!,
+        contact: c,
+        token: ContactListPage.barerToken,
+        isChanged: true,
+      ));
+      // Navigator.pushReplacement(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: ((context) => SingleContactDetailsPage(
+      //           contactID: c.id!,
+      //               contact: c,
+      //               token: ContactListPage.barerToken,
+      //               isChanged: true,
+      //             ))));
     } else {
       print('failed ${response.statusCode}');
     }
@@ -422,7 +431,8 @@ class _UpdateSingleContactDetailsPageState
             if (!currentFocus.hasPrimaryFocus) {
               currentFocus.unfocus();
             }
-            Navigator.pop(context);
+            Get.back();
+            //Navigator.pop(context);
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20, 15, 0, 0),
@@ -680,13 +690,16 @@ class _UpdateSingleContactDetailsPageState
                   children: <Widget>[
                     ElevatedButton(
                         onPressed: () async {
-                          Navigator.pop(context);
+                          Get.back();
+                          //Navigator.pop(context);
+
                           getImage(1);
                         },
                         child: const Text('Pick Image from Gallery')),
                     ElevatedButton(
                         onPressed: () async {
-                          Navigator.pop(context);
+                          Get.back();
+                          //Navigator.pop(context);
                           getImage(2);
                         },
                         child: const Text('Pick Image from Camera')),

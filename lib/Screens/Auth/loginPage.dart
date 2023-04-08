@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:community_app/Screens/Auth/signup.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../contactListPage.dart';
@@ -57,12 +58,15 @@ class _LoginPageState extends State<LoginPage> {
         prefs.setString('token', data['token']);
         prefs.setInt('loginID', data['data']['id']);
         prefs.setString('login-pass', password);
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: ((context) => ContactListPage(
-                      token: data['token'],
-                    ))));
+        Get.offAll(ContactListPage(
+          token: data['token'],
+        ));
+        // Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //         builder: ((context) => ContactListPage(
+        //               token: data['token'],
+        //             ))));
         print(data['token']);
         print(data['data']['id']);
         print('Login successfully');
@@ -71,27 +75,47 @@ class _LoginPageState extends State<LoginPage> {
           _circularIndicator = false;
         });
         print('failed' + response.statusCode.toString());
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        //   backgroundColor: Color(0xFF926AD3),
+        //   content: Text(
+        //     "Please check your Email & Password!",
+        //     style: TextStyle(fontSize: 14),
+        //   ),
+        //   duration: Duration(milliseconds: 1500),
+        // ));
+        Get.snackbar(
+          "Warning",
+          "Please check your Email & Password!",
+          colorText: Colors.white,
+          //icon: Icon(Icons.person, color: Colors.white),
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Color(0xFF926AD3),
-          content: Text(
-            "Please check your Email & Password!",
-            style: TextStyle(fontSize: 14),
-          ),
-          duration: Duration(milliseconds: 1500),
-        ));
+          duration: Duration(seconds: 4),
+          isDismissible: true,
+        );
       }
     } catch (e) {
       setState(() {
         _circularIndicator = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Color(0xFF926AD3),
-        content: Text(
-          '$e!',
-          style: TextStyle(fontSize: 14),
-        ),
-        duration: Duration(milliseconds: 2000),
-      ));
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //   backgroundColor: Color(0xFF926AD3),
+      //   content: Text(
+      //     '$e!',
+      //     style: TextStyle(fontSize: 14),
+      //   ),
+      //   duration: Duration(milliseconds: 2000),
+      // ));
       print(e.toString());
     }
   }
@@ -289,8 +313,9 @@ class _LoginPageState extends State<LoginPage> {
         if (!currentFocus.hasPrimaryFocus) {
           currentFocus.unfocus();
         }
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => ForgetPasswordPage()));
+        Get.to(ForgetPasswordPage());
+        // Navigator.push(context,
+        //     MaterialPageRoute(builder: (context) => ForgetPasswordPage()));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 15),
@@ -321,8 +346,9 @@ class _LoginPageState extends State<LoginPage> {
             if (!currentFocus.hasPrimaryFocus) {
               currentFocus.unfocus();
             }
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => SignUpPage()));
+            Get.offAll(SignUpPage());
+            // Navigator.pushReplacement(
+            //     context, MaterialPageRoute(builder: (context) => SignUpPage()));
           },
           child: Container(
             width: MediaQuery.of(context).size.width / 2,

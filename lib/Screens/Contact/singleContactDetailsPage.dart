@@ -18,13 +18,16 @@ import '../Auth/loginPage.dart';
 import '../User/userProfilePage.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
 
 class SingleContactDetailsPage extends StatefulWidget {
+  final int contactID;
   final Contact contact;
   final String token;
   final bool isChanged;
   const SingleContactDetailsPage(
       {Key? key,
+        required this.contactID,
       required this.contact,
       required this.token,
       required this.isChanged})
@@ -49,6 +52,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   late String socialLinks;
   late String note;
   late String favourite;
+  Contact x = Contact();
   List<Contact> connectionsContact = [];
   List<String> connectionsContactString = [];
   String image = 'https://scm.womenindigital.net/storage/uploads/';
@@ -64,6 +68,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     // TODO: implement initState
     super.initState();
     shareText = valueInitialization();
+    //getContactDetailsApi();
     // Check for phone call support.
     canLaunchUrl(Uri(scheme: 'tel', path: '123')).then((bool result) {
       setState(() {
@@ -119,7 +124,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     } else {
       connections = " ";
       getConnectionsId(widget.contact.connected_id.toString());
-      print('Connection list: ' + widget.contact.connected_id.toString());
+      //print('Connection list: ' + widget.contact.connected_id.toString());
 
       for (Contact x in connectionsContact) {
         connections = "$connections${x.name} ";
@@ -138,7 +143,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     } else {
       //final splitted = string.split(' ');
       final temp = widget.contact.date_of_birth.toString().split('-');
-      print(temp);
+      //print(temp);
       final year = temp[0];
       final month = getMonth(temp[1]);
       final date = temp[2];
@@ -179,9 +184,9 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
         _isFav = false;
       }
     }
-    print(
-        '$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
-        '$gender : $address : $connections : $socialLinks : $note');
+    // print(
+    //     '$name : $photo : $phone_no : $email : $designation : $organization : $dob :'
+    //     '$gender : $address : $connections : $socialLinks : $note');
     return text;
   }
 
@@ -192,11 +197,11 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     final contactIDs = temp0[0];
     //print(contactIDs);
     final list = contactIDs.split(', ');
-    print("LIST LENGTH "+list.length.toString());
+    //print("LIST LENGTH "+list.length.toString());
     for (Contact x in ContactListPage.contactList) {
       //print("Name: " + x.name.toString() + x.id.toString());
       if (list.contains(x.id.toString())) {
-        print("inside if Name: " + x.name.toString() + x.id.toString());
+       // print("inside if Name: " + x.name.toString() + x.id.toString());
         connectionsContact.add(x);
       }
     }
@@ -206,9 +211,8 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
         connectionsContactString.add(s);
       }
     }
-    print("connectionsContact: " + connectionsContact.toString());
+    //print("connectionsContact: " + connectionsContact.toString());
   }
-
 
   bool isNumericUsing_tryParse(String string) {
     // Null or empty string is not a number
@@ -229,6 +233,54 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     return true;
   }
 
+  Future<void> getContactDetailsApi() async {
+    //ContactListPage.user.clear();
+    final prefs = await SharedPreferences.getInstance();
+    String contactID = widget.contactID.toString();
+    //https://scm.womenindigital.net/api/connection/3/show
+    String url =
+        'https://scm.womenindigital.net/api/connection/${contactID}/show';
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        "Accept": 'application/json',
+        'Authorization': 'Bearer ${prefs.getString('token')}'
+      });
+      var data = jsonDecode(response.body.toString());
+      print("${response.statusCode} $data");
+      if (response.statusCode == 200) {
+        for (Map i in data) {
+          print("name " + i['name']);
+          x = Contact(
+            id: i['id'],
+            name: i['name'],
+            photo: i['photo'],
+            designation: i['designation'],
+            organization: i['organization'],
+            phone_no: i['phone_no'],
+            email: i['email'],
+            date_of_birth: i['date_of_birth'],
+            gender: i['gender'],
+            address: i['address'],
+            social_media: i['social_media'],
+            note: i['note'],
+          );
+        }
+      } else {}
+    } catch (e) {
+      // TODO
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Color(0xFF926AD3),
+        content: Text(
+          '$e!',
+          style: TextStyle(fontSize: 14),
+        ),
+        duration: Duration(milliseconds: 2000),
+      ));
+      print(e.toString());
+    }
+  }
+
   Future<http.Response> deleteContact() async {
     final prefs = await SharedPreferences.getInstance();
     String id = widget.contact.id.toString();
@@ -241,13 +293,15 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     );
     if (response.statusCode == 200) {
       print("successfully deleted Contact: $id");
-      Navigator.pop(context);
-      Navigator.pop(context);
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: ((context) => ContactListPage(
-                  token: 'Bearer ' + prefs.getString('token').toString()))));
+      Get.offAll(ContactListPage(
+          token: 'Bearer ' + prefs.getString('token').toString()));
+      // Navigator.pop(context);
+      // Navigator.pop(context);
+      // Navigator.pushReplacement(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: ((context) => ContactListPage(
+      //             token: 'Bearer ' + prefs.getString('token').toString()))));
     }
 
     return response;
@@ -272,15 +326,19 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
         InkWell(
           onTap: () {
             if (_isChange || widget.isChanged) {
-              Navigator.pop(context);
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) => ContactListPage(
-                            token: widget.token,
-                          ))));
+              // Navigator.pop(context);
+              // Navigator.pushReplacement(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: ((context) => ContactListPage(
+              //               token: widget.token,
+              //             ))));
+              Get.offAll(ContactListPage(
+                token: widget.token,
+              ));
             } else {
-              Navigator.pop(context);
+              Get.back();
+             // Navigator.pop(context);
             }
           },
           child: Container(
@@ -493,11 +551,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
               _isChange = true;
             });
             print("Taped edit");
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: ((context) => UpdateSingleContactDetailsPage(
-                        contact: widget.contact))));
+            // Navigator.push(
+            //     context,
+            //     MaterialPageRoute(
+            //         builder: ((context) => UpdateSingleContactDetailsPage(
+            //             contact: widget.contact))));
+            Get.to(UpdateSingleContactDetailsPage(
+                contact: widget.contact));
           },
           child: Container(
             padding:
@@ -539,7 +599,8 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                         ElevatedButton(
                             onPressed: () async {
                               print("Pressed Cancel");
-                              Navigator.pop(context);
+                              Get.back();
+                              //Navigator.pop(context);
                             },
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size(200, 40),
@@ -616,19 +677,24 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                 if (kDebugMode) {
                   print("My account menu is selected.");
                 }
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: ((context) => UserProfilePage(
-                              user: ContactListPage.user[0],
-                              isChanged: false,
-                            ))));
+                Get.to(UserProfilePage(
+                  user: ContactListPage.user[0],
+                  isChanged: false,
+                ));
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: ((context) => UserProfilePage(
+                //               user: ContactListPage.user[0],
+                //               isChanged: false,
+                //             ))));
               } else if (value == 1) {
                 if (kDebugMode) {
                   print("Settings menu is selected.");
                 }
-                Navigator.push(context,
-                    MaterialPageRoute(builder: ((context) => SettingPage())));
+                Get.to(SettingPage());
+                // Navigator.push(context,
+                //     MaterialPageRoute(builder: ((context) => SettingPage())));
               } else if (value == 2) {
                 // final prefs = await SharedPreferences.getInstance();
                 // prefs.setBool('isLoggedIn',false);
@@ -685,20 +751,25 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
             }
             //widget.contact.favourite?.isEmpty ?? true
             if (ContactListPage.user!.isNotEmpty ?? true) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) => UserProfilePage(
-                            user: ContactListPage.user[0],
-                            isChanged: false,
-                          ))));
+              Get.to(UserProfilePage(
+                user: ContactListPage.user[0],
+                isChanged: false,
+              ));
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: ((context) => UserProfilePage(
+              //               user: ContactListPage.user[0],
+              //               isChanged: false,
+              //             ))));
             }
           } else if (value == 1) {
             if (kDebugMode) {
               print("as Vcard is selected.");
             }
-            Navigator.push(context,
-                MaterialPageRoute(builder: ((context) => SettingPage())));
+            Get.to(SettingPage());
+            // Navigator.push(context,
+            //     MaterialPageRoute(builder: ((context) => SettingPage())));
           }
         });
   }
@@ -898,8 +969,9 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body.toString());
         prefs.setBool('isLoggedIn', false);
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: ((context) => LoginPage())));
+        Get.offAll(LoginPage());
+        // Navigator.pushReplacement(
+        //     context, MaterialPageRoute(builder: ((context) => LoginPage())));
 
         print('Logout successfully');
       } else {
@@ -920,7 +992,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   }
 
   Widget _textField(String hintText, String value, Icon icon) {
-    print(hintText +value+"/");
+    //print(hintText +value+"/");
     TextEditingController controller = TextEditingController();
     if (value != " ") {
       controller.text = value;

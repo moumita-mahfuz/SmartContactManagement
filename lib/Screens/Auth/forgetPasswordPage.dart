@@ -1,7 +1,7 @@
 import 'package:community_app/Screens/Auth/signup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
 import '../../Widget/bezierContainer.dart';
 
 
@@ -19,7 +19,8 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
 
         InkWell(
           onTap: () {
-            Navigator.pop(context);
+            Get.back();
+            // Navigator.pop(context);
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20,15,0,0),
@@ -167,8 +168,9 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => SignUpPage()));
+            Get.to(SignUpPage());
+            // Navigator.pushReplacement(
+            //     context, MaterialPageRoute(builder: (context) => SignUpPage()));
           },
           child: Container(
             width: MediaQuery.of(context).size.width / 2,

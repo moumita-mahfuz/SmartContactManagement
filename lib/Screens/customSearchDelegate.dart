@@ -18,7 +18,19 @@ class CustomSearchDelegate extends SearchDelegate {
     "Strawberries"
   ];
   List<Contact> searchContactList = ContactListPage.contactList;
+  List<Contact> finalContactList = [];
   String image = 'https://scm.womenindigital.net/storage/uploads/';
+
+  bool isPresent(String name) {
+    bool status = false;
+    for (Contact x in ContactListPage.contactList) {
+      // print("isPresent name: ${x.name} == $name");
+      if (name == x.name.toString()) {
+        status = true;
+      }
+    }
+    return status;
+  }
 
 // first overwrite to
 // clear the search text
@@ -130,6 +142,7 @@ class CustomSearchDelegate extends SearchDelegate {
                   context,
                   MaterialPageRoute(
                       builder: (context) => SingleContactDetailsPage(
+                        contactID: matchContact[index].id!,
                         contact: matchContact[index],
                         token: ContactListPage.barerToken ,
                         isChanged: false, )));
@@ -200,6 +213,7 @@ class CustomSearchDelegate extends SearchDelegate {
                   context,
                   MaterialPageRoute(
                       builder: (context) => SingleContactDetailsPage(
+                        contactID: matchContact[index].id!,
                         contact: matchContact[index],
                         token: ContactListPage.barerToken ,
                           isChanged: false, )));

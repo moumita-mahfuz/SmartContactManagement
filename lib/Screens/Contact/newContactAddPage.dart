@@ -18,6 +18,7 @@ import '../../Widget/multiSelectDropDown.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
 
 class NewContactAddPage extends StatefulWidget {
   final List<Contact> contactList;
@@ -79,99 +80,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     return file;
   }
 
-  // void submitForm(
-  //     String name,
-  //     designation,
-  //     organization,
-  //     connected_id,
-  //     phone_no,
-  //     email,
-  //     date_of_birth,
-  //     gender,
-  //     address,
-  //     social_media,
-  //     note) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //
-  //   Map<String, String> headers = {
-  //     "Accept": 'application/json',
-  //     'Authorization': 'Bearer ${prefs.getString('token')}'
-  //   };
-  //   Map<String, String> body = {
-  //     'name': name,
-  //     'designation': designation,
-  //     'organization': organization,
-  //     'connected_id': getCheckedItemsID(_checkedItems).toString(),
-  //     'phone_no': phone_no,
-  //     'email': email,
-  //     'date_of_birth': date_of_birth,
-  //     'gender': gender,
-  //     'address': address,
-  //     'social_media': social_media,
-  //     'note': note,
-  //     'created_by': prefs.getInt('loginID').toString()
-  //   };
-  //   if (kDebugMode) {
-  //     print('Bearer ' +
-  //         prefs.getString('token').toString() +
-  //         " " +
-  //         prefs.getInt('loginID').toString());
-  //   }
-  //   if (kDebugMode) {
-  //     print(
-  //         "${"${"Body  " + name + "  " + designation + "  " + organization + "  " + _checkedItems.toString() + "  " + phone_no + "  " + email + "  " + date_of_birth + "  " + gender + "  " + address + "  " + social_media}  " + note}  ${prefs.getInt('loginID')}");
-  //   }
-  //   // name, designation, organization, connected_id, phone_no, email,
-  //   // date_of_birth, gender, address, social_media, note, photo
-  //   //http://scm.womenindigital.net//api/form/post
-  //   try {
-  //     var uri = Uri.parse('http://scm.womenindigital.net/api/form/post');
-  //     var request = http.MultipartRequest('POST', uri);
-  //     request.headers.addAll(headers);
-  //     request.fields.addAll(body);
-  //     //var response = await request.send();
-  //     http.Response response =
-  //         await http.Response.fromStream(await request.send());
-  //     print("Result: ${response.statusCode}");
-  //     //print(response.stream.toString());
-  //     if (response.statusCode == 200) {
-  //       _id = getFormID(response.body);
-  //       print("IMAGE PATH" + _image.path.toString() + "khatam");
-  //       if ((_image != null || _image == '/') && _image.path != '/') {
-  //         addImage(_id, _image!.path);
-  //       } else {
-  //         Navigator.pushReplacement(
-  //             context,
-  //             MaterialPageRoute(
-  //                 builder: ((context) => ContactListPage(
-  //                     token:
-  //                         'Bearer ' + prefs.getString('token').toString()))));
-  //       }
-  //
-  //       setState(() {
-  //         showSpinner = false;
-  //       });
-  //       print('info uploaded');
-  //     } else {
-  //       print('failed ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('failed');
-  //     setState(() {
-  //       showSpinner = false;
-  //     });
-  //   }
-  // }
-  //
-  // String getFormID(String s) {
-  //   final temp = s.split(',');
-  //   print("Last INDEX: " + temp.last.toString());
-  //   String r = temp.last.toString();
-  //   String id = r.replaceAll(RegExp('[^0-9]'), '');
-  //   print("ID: $id");
-  //   return id;
-  // }
-
   void submitForm(
       String name,
       String designation,
@@ -225,9 +133,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       print(response.statusCode);
     }
     if (response.statusCode == 200) {
-      Navigator.pop(context);
-      Navigator.pop(context);
-      goBack();
+      Get.offAll(ContactListPage(token: 'Bearer ${prefs.getString('token')}'));
       //return true;
     } else {
       // return false;
@@ -266,14 +172,14 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   //   }
   // }
 
-  goBack() async {
-    final prefs = await SharedPreferences.getInstance();
-    Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: ((context) => ContactListPage(
-                token: 'Bearer ' + prefs.getString('token').toString()))));
-  }
+  // goBack() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(
+  //           builder: ((context) => ContactListPage(
+  //               token: 'Bearer ' + prefs.getString('token').toString()))));
+  // }
 
   void getConnectionItemList(List<Contact> contactList) {
     for (Contact x in contactList) {
@@ -356,38 +262,81 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     return GestureDetector(
       onTap: () {
         print("tapped");
-        showModalBottomSheet<void>(
-          context: context,
-          builder: (BuildContext context) {
-            return Container(
-              height: 100,
-              color: Colors.white,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    ElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          getImage(1);
-                        },
-                        child: const Text('Pick Image from Gallery')),
-                    ElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          getImage(2);
-                        },
-                        child: const Text('Pick Image from Camera')),
-                    // ElevatedButton(
-                    //   child: const Text('Close BottomSheet'),
-                    //   onPressed: () => Navigator.pop(context),
-                    // ),
-                  ],
-                ),
+        // showModalBottomSheet<void>(
+        //   context: context,
+        //   builder: (BuildContext context) {
+        //     return Container(
+        //       height: 100,
+        //       color: Colors.white,
+        //       child: Center(
+        //         child: Column(
+        //           mainAxisAlignment: MainAxisAlignment.center,
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: <Widget>[
+        //             ElevatedButton(
+        //                 onPressed: () async {
+        //                   Navigator.pop(context);
+        //                   getImage(1);
+        //                 },
+        //                 child: const Text('Pick Image from Gallery')),
+        //             ElevatedButton(
+        //                 onPressed: () async {
+        //                   Navigator.pop(context);
+        //                   getImage(2);
+        //                 },
+        //                 child: const Text('Pick Image from Camera')),
+        //             // ElevatedButton(
+        //             //   child: const Text('Close BottomSheet'),
+        //             //   onPressed: () => Navigator.pop(context),
+        //             // ),
+        //           ],
+        //         ),
+        //       ),
+        //     );
+        //   },
+        // );
+        Get.bottomSheet(
+          Container(
+            height: 100,
+            color: Colors.white,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ElevatedButton(
+                      onPressed: () async {
+                        Get.back();
+                        //Navigator.pop(context);
+                        getImage(1);
+                      },
+                      child: const Text('Pick Image from Gallery')),
+                  ElevatedButton(
+                      onPressed: () async {
+                        Get.back();
+                        //Navigator.pop(context);
+                        getImage(2);
+                      },
+                      child: const Text('Pick Image from Camera')),
+                  // ElevatedButton(
+                  //   child: const Text('Close BottomSheet'),
+                  //   onPressed: () => Navigator.pop(context),
+                  // ),
+                ],
               ),
-            );
-          },
+            ),
+          ),
+          //barrierColor: Colors.red[50],
+          isDismissible: false,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(35),
+              // side: BorderSide(
+              //     width: 5,
+              //     color: Colors.black
+              // )
+          ),
+          enableDrag: false,
+
         );
       },
       child: SizedBox(
@@ -878,7 +827,8 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                 _showDialog();
               });
             } else {
-              Navigator.pop(context);
+              Get.back();
+              //Navigator.pop(context);
             }
 
           },
@@ -916,14 +866,14 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             ),
           ),
           actions: <Widget>[
-            TextButton(
+            ElevatedButton(
               onPressed: () => {
                 Navigator.pop(context, 'Cancel'),
               Navigator.pop(context),
               },
               child: const Text('Yes'),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.pop(context, 'OK'),
               child: const Text('No'),
             ),
@@ -965,38 +915,78 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           }
         });
         if (showSpinner == true) {
-          showModalBottomSheet<void>(
-            context: context,
-            isDismissible: false,
-            builder: (BuildContext context) {
-              return Container(
-                height: 80,
-                color: Color(0xFF926AD3),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      SizedBox(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          backgroundColor: Colors.white,
-                        ),
-                        height: 18,
-                        width: 18,
+          // showModalBottomSheet<void>(
+          //   context: context,
+          //   isDismissible: false,
+          //   builder: (BuildContext context) {
+          //     return Container(
+          //       height: 80,
+          //       color: Color(0xFF926AD3),
+          //       child: Center(
+          //         child: Row(
+          //           mainAxisAlignment: MainAxisAlignment.center,
+          //           mainAxisSize: MainAxisSize.min,
+          //           children: <Widget>[
+          //             SizedBox(
+          //               child: CircularProgressIndicator(
+          //                 strokeWidth: 3,
+          //                 backgroundColor: Colors.white,
+          //               ),
+          //               height: 18,
+          //               width: 18,
+          //             ),
+          //             SizedBox(
+          //               width: 10,
+          //             ),
+          //             Text(
+          //               "Please wait...",
+          //               style: TextStyle(fontSize: 18,color: Colors.white),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // );
+          Get.bottomSheet(
+            Container(
+              height: 80,
+              color: Color(0xFF926AD3),
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    SizedBox(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        backgroundColor: Colors.white,
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        "Please wait...",
-                        style: TextStyle(fontSize: 18,color: Colors.white),
-                      ),
-                    ],
-                  ),
+                      height: 18,
+                      width: 18,
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text(
+                      "Please wait...",
+                      style: TextStyle(fontSize: 18,color: Colors.white),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+            ),
+            //barrierColor: Colors.red[50],
+            isDismissible: false,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+                // side: BorderSide(
+                //     width: 5,
+                //     color: Colors.black
+                // )
+            ),
+            enableDrag: false,
+
           );
           // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           //   backgroundColor: Color(0xFF926AD3),

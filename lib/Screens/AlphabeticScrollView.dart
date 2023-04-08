@@ -4,7 +4,7 @@ import 'package:community_app/Screens/contactListPage.dart';
 import 'package:flutter/material.dart';
 import 'package:mailto/mailto.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
 import '../Model/contact.dart';
 import 'Contact/singleContactDetailsPage.dart';
 
@@ -111,14 +111,20 @@ class _AlphabeticScrollViewState extends State<AlphabeticScrollView> {
                     //tilePadding: EdgeInsets.only(right: 35),
                     leading: InkWell(
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SingleContactDetailsPage(
-                                      contact: widget.items[index],
-                                      token: ContactListPage.barerToken,
-                                      isChanged: false,
-                                    )));
+                        Get.to(SingleContactDetailsPage(
+                          contactID: widget.items[index].id!,
+                          contact: widget.items[index],
+                          token: ContactListPage.barerToken,
+                          isChanged: false,
+                        ));
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //         builder: (context) => SingleContactDetailsPage(
+                        //               contact: widget.items[index],
+                        //               token: ContactListPage.barerToken,
+                        //               isChanged: false,
+                        //             )));
                       },
                       child: CircleAvatar(
                         radius: 17,
@@ -147,14 +153,20 @@ class _AlphabeticScrollViewState extends State<AlphabeticScrollView> {
 
                     title: InkWell(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => SingleContactDetailsPage(
-                                        contact: widget.items[index],
-                                        token: ContactListPage.barerToken,
-                                        isChanged: false,
-                                      )));
+                          Get.to(SingleContactDetailsPage(
+                            contactID: widget.items[index].id!,
+                            contact: widget.items[index],
+                            token: ContactListPage.barerToken,
+                            isChanged: false,
+                          ));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => SingleContactDetailsPage(
+                          //               contact: widget.items[index],
+                          //               token: ContactListPage.barerToken,
+                          //               isChanged: false,
+                          //             )));
                         },
                         child: Text(
                           widget.items[index].name.toString(),
@@ -359,15 +371,12 @@ class _AlphabeticScrollViewState extends State<AlphabeticScrollView> {
 
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SingleContactDetailsPage(
-                          contact: contact,
-                          token: ContactListPage.barerToken,
-                          isChanged: false,
-                        ),
-                      ));
+                  Get.to(SingleContactDetailsPage(
+                    contactID: contact.id!,
+                    contact: contact,
+                    token: ContactListPage.barerToken,
+                    isChanged: false,
+                  ));
                 },
                 child: Text("View Details"),
               ),

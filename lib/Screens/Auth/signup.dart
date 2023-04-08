@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'loginPage.dart';
 
+import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key, this.title}) : super(key: key);
 
@@ -52,8 +54,9 @@ class _SignUpPageState extends State<SignUpPage> {
         var data = jsonDecode(response.body.toString());
         print(data['token']);
         print('Register successfully');
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: ((context) => LoginPage())));
+        // Navigator.pushReplacement(
+        //     context, MaterialPageRoute(builder: ((context) => LoginPage())));
+        Get.offAll(LoginPage());
         //set the shared preference instance
         // final prefs = await SharedPreferences.getInstance();
         // prefs.setBool('isLoggedIn', true);
@@ -64,14 +67,24 @@ class _SignUpPageState extends State<SignUpPage> {
         setState(() {
           _circularIndicator = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        //   backgroundColor: Color(0xFF926AD3),
+        //   content: Text(
+        //     "This mail is already taken!",
+        //     style: TextStyle(fontSize: 14),
+        //   ),
+        //   duration: Duration(milliseconds: 1500),
+        // ));
+        Get.snackbar(
+          "Warning",
+          "This mail is already taken!!",
+          colorText: Colors.white,
+          //icon: Icon(Icons.person, color: Colors.white),
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Color(0xFF926AD3),
-          content: Text(
-            "This mail is already taken!",
-            style: TextStyle(fontSize: 14),
-          ),
-          duration: Duration(milliseconds: 1500),
-        ));
+          duration: Duration(seconds: 4),
+          isDismissible: true,
+        );
       }else {
         setState(() {
           _circularIndicator = false;
@@ -82,14 +95,24 @@ class _SignUpPageState extends State<SignUpPage> {
       setState(() {
         _circularIndicator = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Color(0xFF926AD3),
-        content: Text(
-          '$e!',
-          style: TextStyle(fontSize: 14),
-        ),
-        duration: Duration(milliseconds: 2000),
-      ));
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //   backgroundColor: Color(0xFF926AD3),
+      //   content: Text(
+      //     '$e!',
+      //     style: TextStyle(fontSize: 14),
+      //   ),
+      //   duration: Duration(milliseconds: 2000),
+      // ));
       print(e.toString());
     }
   }
@@ -296,8 +319,9 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => LoginPage()));
+            Get.offAll(LoginPage());
+            // Navigator.pushReplacement(
+            //     context, MaterialPageRoute(builder: (context) => LoginPage()));
           },
           child: Container(
             width: MediaQuery.of(context).size.width / 2,
