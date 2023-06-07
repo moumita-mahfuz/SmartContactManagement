@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'loginPage.dart';
@@ -28,12 +29,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void signup(String name, email, password) async {
     int x = 0;
+
+    // final client = HttpClient();
+    // Response r = await client.post(http://127.0.0.1:8000/, port, path)
+    // final request = await client.getUrl(Uri.parse(apiUrl));
+    // final response = await request.close();
     try {
       Response response = await post(
         ///api/auth/registration
         ///https://scm.womenindigital.net/api/auth/registration
         ///https://scm.womenindigital.net/api/auth/registration/user
-          Uri.parse('https://scm.womenindigital.net/api/auth/registration/user'),
+        ///https://scm.womenindigital.net  http://127.0.0.1:8000/api/auth/registration
+          Uri.parse('https://scm.womenindigital.net/api/auth/register'),
           headers: {
             "Accept": 'application/json',
           },
@@ -45,6 +52,7 @@ class _SignUpPageState extends State<SignUpPage> {
             'confirm_password': password,
             'is_verified': x.toString()
           });
+      
       print(response.statusCode);
 
       if (response.statusCode == 200) {

@@ -50,6 +50,7 @@ dependencies:
   flutter_custom_clippers: ^2.1.0
   image_cropper: ^3.0.1
   intl_phone_field: ^3.1.0
+  page_indicator: ^0.4.1
 
 dev_dependencies:
   flutter_test:

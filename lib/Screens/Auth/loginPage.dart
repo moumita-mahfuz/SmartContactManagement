@@ -58,6 +58,7 @@ class _LoginPageState extends State<LoginPage> {
         prefs.setString('token', data['token']);
         prefs.setInt('loginID', data['data']['id']);
         prefs.setString('login-pass', password);
+        print (data['token']);
         Get.offAll(ContactListPage(
           token: data['token'],
         ));

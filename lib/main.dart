@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'Screens/Auth/loginPage.dart';
+import 'Screens/Group/groupListPage.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,10 @@ class MyApp extends StatelessWidget {
           // ),
         ),
       debugShowCheckedModeBanner: false,
+        routes: {
+          '/GroupListPage': (context) => GroupListPage(),
+          //'/ExternalGroupSingleView' : (context) => ExternalGroupSingleView();
+        },
       home: isLoggedIn ? ContactListPage(token: token) : LoginPage()
     );
   }

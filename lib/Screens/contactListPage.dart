@@ -22,6 +22,7 @@ class ContactListPage extends StatefulWidget {
   final String token;
   static List<Contact> contactList = [];
   static List<Contact> favouriteList = [];
+  static List<Contact> allContacts = [];
   static List<User> user = [];
   static String barerToken = '';
   const ContactListPage({Key? key, required this.token}) : super(key: key);
@@ -47,7 +48,9 @@ class _ContactListPageState extends State<ContactListPage> {
   void initState() {
     // initializing states
     super.initState();
-    futureContactList = getContactListApi();
+    futureContactList = getContactListApi('normal');
+    futureFavouriteList = getContactListApi('favourite');
+    getAllContactApi();
     FocusManager.instance.primaryFocus?.unfocus();
     //futureFavouriteList = getFavouriteListApi();
     getUserDetailsApi();
@@ -58,7 +61,7 @@ class _ContactListPageState extends State<ContactListPage> {
     });
   }
 
-  Future<List<Contact>> getContactListApi() async {
+  Future<List<Contact>> getContactListApi(String type) async {
     setState(() {
       ContactListPage.contactList.clear();
       ContactListPage.favouriteList.clear();
@@ -74,12 +77,9 @@ class _ContactListPageState extends State<ContactListPage> {
         'Authorization': 'Bearer ${prefs.getString('token')}'
       });
       var data = jsonDecode(response.body.toString());
-       print(response.body.toString());
+       //print(response.body.toString());
       if (response.statusCode == 200) {
         for (Map i in data) {
-          // print("photo:   $i['photo']");
-          // print("STATUS " + i['favourite']);
-          //print("name " + i['name']);
           bool status = isPresent(i['name']);
           if (status == false) {
             //tempList.add(Contact.fromJson(i));
@@ -99,14 +99,6 @@ class _ContactListPageState extends State<ContactListPage> {
         //print("ContactListPage Contact List: ${ContactListPage.contactList}");
         //return ContactListPage.contactList;
       } else {
-        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        //   backgroundColor: Color(0xFF926AD3),
-        //   content: Text(
-        //     "Error Code: " + response.statusCode.toString() + "!",
-        //     style: TextStyle(fontSize: 14),
-        //   ),
-        //   duration: Duration(milliseconds: 2000),
-        // ));
         Get.snackbar(
           "Error Code: " + response.statusCode.toString() + "!",
           "Please check your internet connection!",
@@ -135,7 +127,79 @@ class _ContactListPageState extends State<ContactListPage> {
     if (futureContactList.toString().isEmpty) {
       _nullMassage = true;
     }
-    return ContactListPage.contactList;
+    if(type == "favourite") {
+      return ContactListPage.favouriteList;
+    } else {
+      return ContactListPage.contactList;
+    }
+
+  }
+
+
+  Future<void> getAllContactApi() async {
+    print('Start');
+    setState(() {
+      ContactListPage.allContacts.clear();
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    ContactListPage.barerToken = 'Bearer ${prefs.getString('token')}';
+    String url =
+    'https://scm.womenindigital.net/api/contacts';
+        //'https://scm.womenindigital.net/api/${prefs.getInt('loginID')}/allConnections';
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        "Accept": 'application/json',
+        'Authorization': 'Bearer ${prefs.getString('token')}'
+      });
+      print("getAllContactApi " + response.statusCode.toString());
+      var data = jsonDecode(response.body.toString());
+      print("All Contacts "+response.body.toString());
+      if (response.statusCode == 200) {
+        for (Map i in data['OwnContact']) {
+          print("OwnContact: name " + i['name']);
+          bool status = isPresentInAllContact(i['name']);
+          if (status == false) {
+            //tempList.add(Contact.fromJson(i));
+            ContactListPage.allContacts.add(Contact.fromJson(i));
+          }
+        }
+        for (Map i in data['MyGroupContact']) {
+          print("MyGroupContact: name " + i['name']);
+          bool status = isPresentInAllContact(i['name']);
+          if (status == false) {
+            //tempList.add(Contact.fromJson(i));
+            ContactListPage.allContacts.add(Contact.fromJson(i));
+          }
+        }
+        for (Map i in data['externalGroupContact']) {
+          print("externalGroupContact: name " + i['name']);
+          bool status = isPresentInAllContact(i['name']);
+          if (status == false) {
+            //tempList.add(Contact.fromJson(i));
+            ContactListPage.allContacts.add(Contact.fromJson(i));
+          }
+        }
+      } else {
+
+      }
+    } on Exception catch (e) {
+      // TODO
+      Get.snackbar(
+        "Network Issue",
+        "Please check your internet connection!",
+        colorText: Colors.white,
+        //icon: Icon(Icons.person, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Color(0xFF926AD3),
+        duration: Duration(seconds: 4),
+        isDismissible: true,
+      );
+      print(e.toString());
+    }
+    print(ContactListPage.allContacts);
+
   }
 
   bool isFavourite(String status) {
@@ -146,6 +210,17 @@ class _ContactListPageState extends State<ContactListPage> {
       //print(status);
       return false;
     }
+  }
+
+  bool isPresentInAllContact(String name) {
+    bool status = false;
+    for (Contact x in ContactListPage.allContacts) {
+      // print("isPresent name: ${x.name} == $name");
+      if (name == x.name.toString()) {
+        status = true;
+      }
+    }
+    return status;
   }
 
   bool isPresent(String name) {
@@ -487,10 +562,10 @@ class _ContactListPageState extends State<ContactListPage> {
         'Authorization': 'Bearer ${prefs.getString('token')}'
       });
       var data = jsonDecode(response.body.toString());
-      print("${response.statusCode} $data");
+      //print("${response.statusCode} $data");
       if (response.statusCode == 200) {
         for (Map i in data) {
-          print("name " + i['name']);
+         // print("name " + i['name']);
           ContactListPage.user.add(User(
             id: i['id'],
             name: i['name'],
@@ -561,11 +636,14 @@ class _ContactListPageState extends State<ContactListPage> {
               value: 0,
               child: Row(
                 children: const [
-                  Icon(
-                    Icons.group_rounded,
-                    color: Color(0xFF926AD3),
+                  Padding(
+                    padding: EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.group_rounded,
+                      color: Color(0xFF926AD3),
+                    ),
                   ),
-                  Text(" Groups"),
+                  Text("Groups"),
                 ],
               ),
             ),
@@ -573,11 +651,14 @@ class _ContactListPageState extends State<ContactListPage> {
               value: 1,
               child: Row(
                 children: const [
-                  Icon(
-                    Icons.account_circle_rounded,
-                    color: Color(0xFF926AD3),
+                  Padding(
+                    padding: EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.account_circle_rounded,
+                      color: Color(0xFF926AD3),
+                    ),
                   ),
-                  Text(" Profile"),
+                  Text("Profile"),
                 ],
               ),
             ),
@@ -585,11 +666,14 @@ class _ContactListPageState extends State<ContactListPage> {
               value: 2,
               child: Row(
                 children: const [
-                  Icon(
-                    Icons.settings,
-                    color: Color(0xFF926AD3),
+                  Padding(
+                    padding: EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.settings,
+                      color: Color(0xFF926AD3),
+                    ),
                   ),
-                  Text(" Settings"),
+                  Text("Settings"),
                 ],
               ),
             ),
@@ -597,11 +681,14 @@ class _ContactListPageState extends State<ContactListPage> {
               value: 3,
               child: Row(
                 children: const [
-                  Icon(
-                    Icons.logout,
-                    color: Color(0xFF926AD3),
+                  Padding(
+                    padding: EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.logout,
+                      color: Color(0xFF926AD3),
+                    ),
                   ),
-                  Text(" Logout"),
+                  Text("Logout"),
                 ],
               ),
             ),
@@ -609,7 +696,8 @@ class _ContactListPageState extends State<ContactListPage> {
         },
         onSelected: (value) async {
           if (value == 0) {
-            Get.to(GroupListPage());
+            Get.to(() => GroupListPage());
+
           }
           if (value == 1) {
             if (kDebugMode) {
@@ -617,10 +705,11 @@ class _ContactListPageState extends State<ContactListPage> {
             }
             //widget.contact.favourite?.isEmpty ?? true
             if (ContactListPage.user!.isNotEmpty ?? true) {
-              Get.to(UserProfilePage(
+              Get.to(() => UserProfilePage(
                 user: ContactListPage.user[0],
                 isChanged: false,
               ));
+             // Get.to();
               // Navigator.push(
               //     context,
               //     MaterialPageRoute(
@@ -633,7 +722,7 @@ class _ContactListPageState extends State<ContactListPage> {
             if (kDebugMode) {
               print("Settings menu is selected.");
             }
-            Get.to(SettingPage());
+            Get.to(() => SettingPage());
             // Navigator.push(context,
             //     MaterialPageRoute(builder: ((context) => SettingPage())));
           } else if (value == 3) {
@@ -704,6 +793,7 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    //print(ContactListPage.allContacts);
     FocusScopeNode currentFocus = FocusScope.of(context);
     if (!currentFocus.hasPrimaryFocus) {
       currentFocus.unfocus();
@@ -802,28 +892,58 @@ class _ContactListPageState extends State<ContactListPage> {
                     SafeArea(
                       child: Container(
                         color: Colors.transparent,
-                        padding: const EdgeInsets.only(left: 17, right: 10),
+                        padding: const EdgeInsets.only(left: 10, right: 10),
                         child: RefreshIndicator(
                           onRefresh: _refresh,
                           child: FutureBuilder(
                             future: futureContactList,
                             builder: (context,
                                 AsyncSnapshot<List<Contact>> snapshot) {
-                              //print(snapshot.data.toString());
-                              if (!snapshot.hasData) {
-                                return Center(
-                                    child: const CircularProgressIndicator(
-                                  color: Colors.white,
-                                ));
-                              } else {
-                                // snapshot.data!.sort((a, b) {
-                                //   return a.name
-                                //       .toString()
-                                //       .toLowerCase()
-                                //       .compareTo(
-                                //           b.name.toString().toLowerCase());
-                                // });
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                );
+                              }
+                              else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: Center(
+                                    child: Text(
+                                      "No Contact added yet!\nto Add contact, press the floating button below.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              else if (snapshot.hasError) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: Center(
+                                    child: Text(
+                                      "No Contact added yet!\nto Add contact, press the floating button below.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              else if (snapshot.hasData) {
                                 return AlphabeticScrollView(items: snapshot.data!);
+                              }
+                              else {
+                                return const Center(
+                                  child: Text(
+                                    "Something went wrong",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                );
                               }
                             },
                           ),
@@ -836,8 +956,54 @@ class _ContactListPageState extends State<ContactListPage> {
                         padding: const EdgeInsets.only(left: 10, right: 10),
                         child: RefreshIndicator(
                           onRefresh: _refresh,
-                          child: AlphabeticScrollView(items: ContactListPage.favouriteList,)
-                        ),
+                          child: FutureBuilder(
+                            future: futureFavouriteList,
+                            builder: (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                );
+                              }
+                              else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: Text(
+                                    "No Contact added as Favourite yet!\nAdd Favourite Contact, press the Star icon in contact details.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              }
+                              else if (snapshot.hasError) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: Text(
+                                    "No Contact added as Favourite yet!\nAdd Favourite Contact, press the Star icon in contact details.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              }
+                              else if (snapshot.hasData) {
+                                return AlphabeticScrollView(items: ContactListPage.favouriteList,);
+                              }
+                              else {
+                                return const Center(
+                                  child: Text(
+                                    "Something went wrong",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                );
+                              }
+
+                            },),
+                      ),
                       ),
                     ),
                   ],
@@ -850,77 +1016,3 @@ class _ContactListPageState extends State<ContactListPage> {
     );
   }
 }
-// ListView.builder(
-//   key: UniqueKey(),
-//   itemCount: ContactListPage.favouriteList.length,
-//   physics: const AlwaysScrollableScrollPhysics(),
-//   scrollDirection: Axis.vertical,
-//   shrinkWrap: false,
-//   itemBuilder: (context, index) {
-//     return ExpansionTile(
-//       leading: InkWell(
-//         onTap: () {
-//           Navigator.push(
-//               context,
-//               MaterialPageRoute(
-//                   builder: (context) =>
-//                       SingleContactDetailsPage(
-//                         contact: ContactListPage
-//                             .favouriteList![index],
-//                         token: ContactListPage
-//                             .barerToken,
-//                         isChanged: false,
-//                       )));
-//         },
-//         child: CircleAvatar(
-//           radius: 22,
-//           backgroundColor: Colors.white,
-//           child: CircleAvatar(
-//             radius: 20,
-//             backgroundImage: NetworkImage(
-//               image +
-//                   ContactListPage
-//                       .favouriteList![index].photo
-//                       .toString(),
-//             ),
-//           ),
-//         ),
-//       ),
-//
-//       title: InkWell(
-//           onTap: () {
-//             Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                     builder: (context) =>
-//                         SingleContactDetailsPage(
-//                           contact: ContactListPage
-//                               .favouriteList![index],
-//                           token: ContactListPage
-//                               .barerToken,
-//                           isChanged: false,
-//                         )));
-//           },
-//           child: Text(
-//             ContactListPage.favouriteList![index].name
-//                 .toString(),
-//             style:
-//                 const TextStyle(color: Colors.white),
-//           )),
-//       //trailing: _favourite(_getBoolStatus(snapshot.data![index].favourite.toString())),
-//       subtitle: _designationText(ContactListPage
-//           .favouriteList![index].phone_no
-//           .toString()),
-//       children: <Widget>[
-//         Column(
-//           children: [
-//             Container(
-//                 alignment: Alignment.bottomLeft,
-//                 child: _moreButton(ContactListPage
-//                     .favouriteList![index])),
-//           ],
-//         ),
-//       ],
-//     );
-//   },
-// ),

@@ -300,7 +300,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
 
   String _getPhotoID(String rawDetails) {
     final value = rawDetails.split('data :');
-    String details = value[1].replaceAll(RegExp('[^-A-Za-z0-9,:._@ +]'), '');
+    String details = value[1].replaceAll(RegExp('[[^-A-Za-z0-9,:._@ +]]'), '');
     final res = details.split(', ');
     if (kDebugMode) {
       print(res[3]);
@@ -758,7 +758,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
               context: context,
               initialDate: DateTime.now(), //get today's date
               firstDate: DateTime(
-                  2000), //DateTime.now() - not to allow to choose before today.
+                  1950), //DateTime.now() - not to allow to choose before today.
               lastDate: DateTime(2101));
 
           if (pickedDate != null) {
