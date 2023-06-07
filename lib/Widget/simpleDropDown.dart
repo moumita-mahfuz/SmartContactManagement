@@ -22,65 +22,40 @@ class DropdownDemo extends StatefulWidget {
 class _DropdownDemoState extends State<DropdownDemo> {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              // Handle button press
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Color(0xFF926AD3)),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: widget.dropdownHandler.dropdownValue,
+          icon: Icon(Icons.arrow_drop_down, color: Color(0xFF926AD3),),
+          iconSize: 24,
+          elevation: 16,
+          style: TextStyle(color: Color(0xFF926AD3), fontSize: 16),
+          onChanged: (newValue) {
+            setState(() {
+              widget.dropdownHandler.handleDropdownChange(newValue);
+            });
+          },
+          items: <String>[
+            'Name',
+            'Designation',
+            'Organization',
+            'Phone',
+            'Email'
+          ].map<DropdownMenuItem<String>>(
+                (String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF926AD3),
-              elevation: 4,
-            ),
-            child: Theme(
-              data: Theme.of(context).copyWith(
-                textButtonTheme: TextButtonThemeData(
-                  style: ButtonStyle(
-                    foregroundColor: MaterialStateProperty.all<Color>(
-                      Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: widget.dropdownHandler.dropdownValue,
-                  dropdownColor: Color(0xFF926AD3),
-                  icon: Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.white,
-                  ),
-                  onChanged: (newValue) {
-                    setState(() {
-                      widget.dropdownHandler.handleDropdownChange(newValue);
-                    });
-                  },
-                  items: <String>[
-                    'Name',
-                    'Designation',
-                    'Organization',
-                    'Phone',
-                    'Email'
-                  ].map<DropdownMenuItem<String>>(
-                        (String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      );
-                    },
-                  ).toList(),
-                ),
-              ),
-            ),
-          ),
-        ],
+          ).toList(),
+        ),
       ),
     );
   }

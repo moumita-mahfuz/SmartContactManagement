@@ -173,11 +173,12 @@ class _GroupListPageState extends State<GroupListPage> {
                     );
                   }
                   else if (snapshot.hasData && snapshot.data!.isEmpty) {
-                    return const Center(
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
                         "No Group created yet!\nto Create Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white,),
                       ),
                     );
                   }
@@ -245,11 +246,12 @@ class _GroupListPageState extends State<GroupListPage> {
                     );
                   }
                   else if (snapshot.hasData && snapshot.data!.isEmpty) {
-                    return const Center(
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
-                        "You are not add to any other groups!\nJoin Group, press the +(plus) icon above.",
+                        "You are not add to any other groups!\nto Join Group, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white,),
                       ),
                     );
                   }
@@ -257,7 +259,7 @@ class _GroupListPageState extends State<GroupListPage> {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
-                        "You are not add to any other groups!\nJoin Group, press the +(plus) icon above.",
+                        "You are not add to any other groups!\nto Join Group, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white,),
                       ),
