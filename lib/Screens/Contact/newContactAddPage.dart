@@ -1,24 +1,24 @@
-import 'dart:convert';
+
 import 'dart:io';
-import 'dart:math';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../Model/contact.dart';
-import '../../Widget/bezierContainer.dart';
+import '../../Widget/dateOfBirth.dart';
+import '../../Widget/genderDropDown.dart';
 import '../../Widget/multiSelectDropDown.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
+
+import '../../Widget/multipleImageSelector.dart';
 
 class NewContactAddPage extends StatefulWidget {
   final List<Contact> contactList;
@@ -116,7 +116,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     };
     var request = http.MultipartRequest('POST', Uri.parse(uri));
     //print("IMAGE" + _croppedFile.toString() + " " + _croppedFile!.path.toString());
-    if (_croppedFile != null ) {
+    if (_croppedFile != null) {
       //File f = await getImageFileFromAssets('images/profile.png');
       request.headers.addAll(headers);
       request.fields.addAll(body);
@@ -139,47 +139,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       // return false;
     }
   }
-
-
-  //
-  // //http://scm.womenindigital.net/api/form/post/images
-  // Future<bool> addImage(String id, String imagePath) async {
-  //   String addImageUrl = 'http://scm.womenindigital.net/api/form/post/images';
-  //   final prefs = await SharedPreferences.getInstance();
-  //   print(id);
-  //   print(_image?.path.toString());
-  //   Map<String, String> headers = {
-  //     'Authorization': 'Bearer ${prefs.getString('token')}',
-  //     'Content-Type': 'multipart/form-data',
-  //   };
-  //   Map<String, String> body = {
-  //     'created_by': prefs.getInt('loginID').toString(),
-  //     'connection_id': id.toString(),
-  //   };
-  //   var request = http.MultipartRequest('POST', Uri.parse(addImageUrl))
-  //     ..fields.addAll(body)
-  //     ..headers.addAll(headers)
-  //     ..files.add(await http.MultipartFile.fromPath('photo', _image!.path));
-  //   var response = await request.send();
-  //   if (kDebugMode) {
-  //     print(response.statusCode);
-  //   }
-  //   if (response.statusCode == 200) {
-  //     goBack();
-  //     return true;
-  //   } else {
-  //     return false;
-  //   }
-  // }
-
-  // goBack() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(
-  //           builder: ((context) => ContactListPage(
-  //               token: 'Bearer ' + prefs.getString('token').toString()))));
-  // }
 
   void getConnectionItemList(List<Contact> contactList) {
     for (Contact x in contactList) {
@@ -222,7 +181,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       final pickedFile = await picker.getImage(source: ImageSource.gallery);
 
       setState(() {
-        if(pickedFile != null) {
+        if (pickedFile != null) {
           _cropImage(pickedFile);
         } else {
           print('No image selected.');
@@ -231,7 +190,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     } else if (status == 2) {
       final pickedFile = await picker.getImage(source: ImageSource.camera);
       setState(() {
-        if(pickedFile != null) {
+        if (pickedFile != null) {
           _cropImage(pickedFile);
         } else {
           print('No image selected.');
@@ -239,6 +198,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       });
     }
   }
+
   /// Crop Image
   Future<void> _cropImage(final _pickedFile) async {
     if (_pickedFile != null) {
@@ -246,8 +206,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
         sourcePath: _pickedFile!.path,
         compressFormat: ImageCompressFormat.jpg,
         compressQuality: 100,
-          // maxWidth: 1080,
-          // maxHeight: 1080,
         aspectRatio: CropAspectRatio(ratioX: 6.2, ratioY: 5),
       );
       if (croppedFile != null) {
@@ -262,39 +220,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     return GestureDetector(
       onTap: () {
         print("tapped");
-        // showModalBottomSheet<void>(
-        //   context: context,
-        //   builder: (BuildContext context) {
-        //     return Container(
-        //       height: 100,
-        //       color: Colors.white,
-        //       child: Center(
-        //         child: Column(
-        //           mainAxisAlignment: MainAxisAlignment.center,
-        //           mainAxisSize: MainAxisSize.min,
-        //           children: <Widget>[
-        //             ElevatedButton(
-        //                 onPressed: () async {
-        //                   Navigator.pop(context);
-        //                   getImage(1);
-        //                 },
-        //                 child: const Text('Pick Image from Gallery')),
-        //             ElevatedButton(
-        //                 onPressed: () async {
-        //                   Navigator.pop(context);
-        //                   getImage(2);
-        //                 },
-        //                 child: const Text('Pick Image from Camera')),
-        //             // ElevatedButton(
-        //             //   child: const Text('Close BottomSheet'),
-        //             //   onPressed: () => Navigator.pop(context),
-        //             // ),
-        //           ],
-        //         ),
-        //       ),
-        //     );
-        //   },
-        // );
         Get.bottomSheet(
           Container(
             height: 100,
@@ -318,10 +243,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                         getImage(2);
                       },
                       child: const Text('Pick Image from Camera')),
-                  // ElevatedButton(
-                  //   child: const Text('Close BottomSheet'),
-                  //   onPressed: () => Navigator.pop(context),
-                  // ),
                 ],
               ),
             ),
@@ -329,14 +250,9 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           //barrierColor: Colors.red[50],
           isDismissible: false,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(35),
-              // side: BorderSide(
-              //     width: 5,
-              //     color: Colors.black
-              // )
+            borderRadius: BorderRadius.circular(35),
           ),
           enableDrag: false,
-
         );
       },
       child: SizedBox(
@@ -390,16 +306,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                 ),
               ),
               Positioned(bottom: 0, right: 15, child: _cameraIcon()),
-              // Align(
-              //   alignment: Alignment.bottomRight,
-              //   child: Padding(
-              //     padding: EdgeInsets.all(8),
-              //     child: Icon(
-              //       Icons.camera_alt,
-              //       color: Color(0xFF926AD3),
-              //     ),
-              //   ),
-              // )
             ],
           ),
         ),
@@ -421,115 +327,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     );
   }
 
-  Widget _genderSuffixPopUpMenu() {
-    return PopupMenuButton(
-        // add icon, by default "3 dot" icon
-        icon: Icon(Icons.keyboard_arrow_down_rounded),
-        itemBuilder: (context) {
-          return [
-            const PopupMenuItem<int>(
-              value: 0,
-              child: Text("Male"),
-            ),
-            const PopupMenuItem<int>(
-              value: 1,
-              child: Text("Female"),
-            ),
-          ];
-        },
-        onSelected: (value) {
-          if (value == 0) {
-            setState(() {
-              dropdownvalue = value.toString();
-              genderController.text = "Male";
-              //hintText = newValue!;
-            });
-            print("Male is selected.");
-          } else if (value == 1) {
-            setState(() {
-              dropdownvalue = value.toString();
-              genderController.text = "Female";
-              //hintText = newValue!;
-            });
-            print("Female is selected.");
-          }
-        });
-  }
-
-  Widget _genderPrefixPopUpMenu() {
-    return PopupMenuButton(
-        // add icon, by default "3 dot" icon
-        icon: Icon(Icons.accessibility_new),
-        itemBuilder: (context) {
-          return [
-            const PopupMenuItem<int>(
-              value: 0,
-              child: Text("Male"),
-            ),
-            const PopupMenuItem<int>(
-              value: 1,
-              child: Text("Female"),
-            ),
-          ];
-        },
-        onSelected: (value) {
-          if (value == 0) {
-            setState(() {
-              dropdownvalue = value.toString();
-              genderController.text = "Male";
-              //hintText = newValue!;
-            });
-            print("Male is selected.");
-          } else if (value == 1) {
-            setState(() {
-              dropdownvalue = value.toString();
-              genderController.text = "Female";
-              //hintText = newValue!;
-            });
-            print("Female is selected.");
-          }
-        });
-  }
-
-  Widget _genderDropDown(String hintText, Icon icon) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      margin: EdgeInsets.symmetric(vertical: 10),
-      padding: EdgeInsets.only(right: 15),
-      //padding: EdgeInsets.symmetric(vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.all(Radius.circular(5)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: genderController,
-              style: const TextStyle(
-                  color:
-                      Color(0xFF9A9A9A)), //editing controller of this TextField
-              decoration: InputDecoration(
-                  hintText: dropdownvalue,
-                  suffixIcon: _genderSuffixPopUpMenu(),
-                  prefixIcon: _genderPrefixPopUpMenu(),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-                  ),
-                  fillColor: Colors.transparent,
-                  filled: true),
-              readOnly: readOnly,
-              focusNode: f1,
-              onTap: () {}, //Clickable and not editable
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _connectionWithDropDown(String hintText, Icon icon) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
@@ -541,7 +338,10 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             children: _checkedItems
                 .map((e) => Chip(
                       backgroundColor: Color(0xFF926AD3),
-                      deleteIcon: Icon(Icons.close,color: Colors.white,),
+                      deleteIcon: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                      ),
                       onDeleted: () {
                         setState(() {
                           _checkedItems.remove(e);
@@ -579,58 +379,13 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       ),
     );
   }
+
   Widget _iconCW(Icon icon) {
     return InkWell(
       onTap: () async {
         _showMultiSelect();
       },
       child: icon,
-    );
-  }
-
-  Widget _dateOfBirth(String hintText, Icon icon) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: TextField(
-        controller: dobController,
-        style: const TextStyle(
-            color: Color(0xFF9A9A9A)), //editing controller of this TextField
-        decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: icon,
-            suffixIcon: Icon(Icons.calendar_month_rounded),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
-            ),
-            fillColor: Colors.transparent,
-            filled: true),
-        readOnly: true, // when true user cannot edit text
-        onTap: () async {
-          DateTime? pickedDate = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(), //get today's date
-              firstDate: DateTime(1950,
-                  1), //DateTime.now() - not to allow to choose before today.
-              lastDate: DateTime(2101));
-
-          if (pickedDate != null) {
-            print(
-                pickedDate); //get the picked date in the format => 2022-07-04 00:00:00.000
-            String formattedDate = DateFormat('yyyy-MM-dd').format(
-                pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
-            print(
-                formattedDate); //formatted date output using intl package =>  2022-07-04
-            //You can format date as per your need
-
-            setState(() {
-              dobController.text =
-                  formattedDate; //set foratted date to TextField value.
-            });
-          } else {
-            print("Date is not selected");
-          }
-        },
-      ),
     );
   }
 
@@ -661,8 +416,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
               filled: true),
         ),
       );
-    }
-    else if (hintText == "Email") {
+    } else if (hintText == "Email") {
       return Container(
         margin: EdgeInsets.only(bottom: 10),
         child: TextField(
@@ -685,8 +439,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
               filled: true),
         ),
       );
-    }
-    else {
+    } else {
       //TextEditingController controllerTitle,
       return Container(
         margin: EdgeInsets.symmetric(vertical: 10),
@@ -714,7 +467,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   }
 
   Widget _phoneEntryField() {
-   return Container(
+    return Container(
       margin: EdgeInsets.only(top: 10),
       child: IntlPhoneField(
         controller: phoneController,
@@ -724,7 +477,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
         style: const TextStyle(color: Color(0xFF926AD3)),
         decoration: InputDecoration(
           hintText: 'Phone',
-          prefixIcon:  Icon(Icons.phone_rounded),
+          prefixIcon: Icon(Icons.phone_rounded),
           fillColor: Colors.transparent,
           enabledBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Color(0xFF9A9A9A)), //<-- SEE HERE
@@ -732,8 +485,15 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
         ),
         initialCountryCode: 'BD',
         onChanged: (phone) {
-          _completePhnNo =  phone.countryCode +"-"+ phone.number +"-"+ phone.countryISOCode;
-          print("COMPLETE NUMBER  "+ phone.countryISOCode + phone.countryCode + phone.number);
+          _completePhnNo = phone.countryCode +
+              "-" +
+              phone.number +
+              "-" +
+              phone.countryISOCode;
+          print("COMPLETE NUMBER  " +
+              phone.countryISOCode +
+              phone.countryCode +
+              phone.number);
         },
       ),
     );
@@ -766,13 +526,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           Icon(Icons.work_rounded),
         ),
         _phoneEntryField(),
-        // _entryField(
-        //   "Phone",
-        //   phoneController,
-        //   TextCapitalization.none,
-        //   TextInputType.phone,
-        //   Icon(Icons.phone_rounded),
-        // ),
         _entryField(
           "Email",
           emailController,
@@ -780,8 +533,10 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.emailAddress,
           Icon(Icons.email_rounded),
         ),
-        _dateOfBirth("Birthday", Icon(Icons.cake_rounded)),
-        _genderDropDown("Male", Icon(Icons.calendar_today)),
+        DateOfBirth(dobController: dobController, hintText: "Birthday", icon: Icon(Icons.cake_rounded),), // ,, ,
+        //_dateOfBirth("Birthday", Icon(Icons.cake_rounded)),
+        GenderDropDown(genderController: genderController, dropdownvalue: "Male",),
+       // _genderDropDown("Male", Icon(Icons.calendar_today)),
         _entryField(
           "Address",
           addressController,
@@ -807,7 +562,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.text,
           Icon(Icons.note_alt_rounded),
         ),
-
+        MultipleImageSelector(),
         // _entryField("Password", isPassword: true),
       ],
     );
@@ -822,7 +577,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             if (!currentFocus.hasPrimaryFocus) {
               currentFocus.unfocus();
             }
-            if(nameController.text.isNotEmpty) {
+            if (nameController.text.isNotEmpty) {
               setState(() {
                 _showDialog();
               });
@@ -830,7 +585,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
               Get.back();
               //Navigator.pop(context);
             }
-
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20, 15, 0, 0),
@@ -869,7 +623,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             ElevatedButton(
               onPressed: () => {
                 Navigator.pop(context, 'Cancel'),
-              Navigator.pop(context),
+                Navigator.pop(context),
               },
               child: const Text('Yes'),
             ),
@@ -902,7 +656,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           currentFocus.unfocus();
         }
         setState(() {
-
           nameController.text.isEmpty ? _validate = true : _validate = false;
 
           bool status = isPresent(nameController.text.toString());
@@ -915,39 +668,6 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           }
         });
         if (showSpinner == true) {
-          // showModalBottomSheet<void>(
-          //   context: context,
-          //   isDismissible: false,
-          //   builder: (BuildContext context) {
-          //     return Container(
-          //       height: 80,
-          //       color: Color(0xFF926AD3),
-          //       child: Center(
-          //         child: Row(
-          //           mainAxisAlignment: MainAxisAlignment.center,
-          //           mainAxisSize: MainAxisSize.min,
-          //           children: <Widget>[
-          //             SizedBox(
-          //               child: CircularProgressIndicator(
-          //                 strokeWidth: 3,
-          //                 backgroundColor: Colors.white,
-          //               ),
-          //               height: 18,
-          //               width: 18,
-          //             ),
-          //             SizedBox(
-          //               width: 10,
-          //             ),
-          //             Text(
-          //               "Please wait...",
-          //               style: TextStyle(fontSize: 18,color: Colors.white),
-          //             ),
-          //           ],
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // );
           Get.bottomSheet(
             Container(
               height: 80,
@@ -970,7 +690,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
                     ),
                     Text(
                       "Please wait...",
-                      style: TextStyle(fontSize: 18,color: Colors.white),
+                      style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ],
                 ),
@@ -979,45 +699,17 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
             //barrierColor: Colors.red[50],
             isDismissible: false,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-                // side: BorderSide(
-                //     width: 5,
-                //     color: Colors.black
-                // )
+              borderRadius: BorderRadius.circular(30),
             ),
             enableDrag: false,
-
           );
-          // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          //   backgroundColor: Color(0xFF926AD3),
-          //   content: Row(
-          //     children: [
-          //       SizedBox(
-          //         child: CircularProgressIndicator(
-          //           strokeWidth: 3,
-          //           backgroundColor: Color(0xFF9A9A9A),
-          //         ),
-          //         height: 14,
-          //         width: 14,
-          //       ),
-          //       SizedBox(
-          //         width: 10,
-          //       ),
-          //       Text(
-          //         "Please wait...",
-          //         style: TextStyle(fontSize: 14),
-          //       ),
-          //     ],
-          //   ),
-          //   //duration: Duration(milliseconds: 1500),
-          // ));
         }
 
         if (nameController.text.isNotEmpty && _validate == false) {
           setState(() {
             showSpinner = true;
           });
-          if(_completePhnNo== ''){
+          if (_completePhnNo == '') {
             submitForm(
                 nameController.text.toString(),
                 designationController.text.toString(),
@@ -1079,35 +771,10 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     for (Contact x in selectedContact) {
       selectedContactIds.add(x.id.toString());
     }
-    if(connectedController.text.isNotEmpty) {
+    if (connectedController.text.isNotEmpty) {
       selectedContactIds.add(connectedController.text.toString());
     }
     return selectedContactIds;
-  }
-
-  Widget _submitButton() {
-    return Container(
-      //width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.symmetric(vertical: 15),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(5)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.grey.shade200,
-                offset: Offset(2, 4),
-                blurRadius: 5,
-                spreadRadius: 2)
-          ],
-          gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [Color(0xfffbb448), Color(0xfff7892b)])),
-      child: Text(
-        'Submit',
-        style: TextStyle(fontSize: 20, color: Colors.white),
-      ),
-    );
   }
 
   @override
@@ -1117,7 +784,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     //print(width.toString());
     return Scaffold(
       body: Container(
-        height: height,
+        height: height + 600,
         width: width,
         color: Colors.white,
         child: Stack(
@@ -1165,31 +832,3 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
     );
   }
 }
-// class DialogExample extends StatelessWidget {
-//   const DialogExample({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return TextButton(
-//       onPressed: () => showDialog<String>(
-//         context: context,
-//         builder: (BuildContext context) => AlertDialog(
-//           title: const Text('AlertDialog Title'),
-//           content: const Text('AlertDialog description'),
-//           actions: <Widget>[
-//             TextButton(
-//               onPressed: () => Navigator.pop(context, 'Cancel'),
-//               child: const Text('Cancel'),
-//             ),
-//             TextButton(
-//               onPressed: () => Navigator.pop(context, 'OK'),
-//               child: const Text('OK'),
-//             ),
-//           ],
-//         ),
-//       ),
-//       child: const Text('Show Dialog'),
-//     );
-//   }
-// }
-
