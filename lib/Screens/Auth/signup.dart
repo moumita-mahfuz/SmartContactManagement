@@ -40,7 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ///https://scm.womenindigital.net/api/auth/registration
         ///https://scm.womenindigital.net/api/auth/registration/user
         ///https://scm.womenindigital.net  http://127.0.0.1:8000/api/auth/registration
-          Uri.parse('https://scm.womenindigital.net/api/auth/register'),
+          Uri.parse('https://scm.womenindigital.net/api/auth/registration'),
           headers: {
             "Accept": 'application/json',
           },

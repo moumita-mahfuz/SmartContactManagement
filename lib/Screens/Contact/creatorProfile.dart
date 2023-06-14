@@ -1,32 +1,28 @@
 import 'dart:convert';
 
-import 'package:community_app/Screens/User/updateUserProfilePage.dart';
-import 'package:community_app/Screens/contactListPage.dart';
-import 'package:community_app/Screens/contactListPage.dart';
-import 'package:community_app/Screens/Contact/updateSingleContactDetailsPage.dart';
+import 'package:community_app/Screens/Contact/singleContactDetailsPage.dart';
 import 'package:community_app/Widget/staticMethods.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
-import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../Model/User.dart';
+import 'package:http/http.dart' as http;
 import '../../Model/contact.dart';
 import '../Auth/loginPage.dart';
 import '../Auth/settingsPage.dart';
 
-class UserProfilePage extends StatefulWidget {
-  User user;
-  final bool isChanged;
-  UserProfilePage({Key? key, required this.user, required this.isChanged}) : super(key: key);
+class CreatorProfile extends StatefulWidget {
+  Contact creator;
+  CreatorProfile({Key? key, required this.creator}) : super(key: key);
 
   @override
-  State<UserProfilePage> createState() => _UserProfilePageState();
+  State<CreatorProfile> createState() => _CreatorProfileState();
 }
 
-class _UserProfilePageState extends State<UserProfilePage> {
+class _CreatorProfileState extends State<CreatorProfile> {
   late String name = "";
   late String phone_no = "";
   late String email = "";
@@ -42,57 +38,54 @@ class _UserProfilePageState extends State<UserProfilePage> {
   // var placeholder = AssetImage(assetName)
   ///storage/profile_photo
   String image = 'https://scm.womenindigital.net/storage/profile_photo/';
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
     valueInitialization();
   }
-
   void valueInitialization() {
     //print('$widget.user.photo  $widget.user.email');
-    if (widget.user.name?.isEmpty ?? true) {
+    if (widget.creator.name?.isEmpty ?? true) {
       name = "";
     } else {
-      name = widget.user.name.toString();
+      name = widget.creator.name.toString();
     }
 
-    if (widget.user.phone_no?.isEmpty ?? true) {
+    if (widget.creator.phone_no?.isEmpty ?? true) {
       phone_no = " ";
     } else {
-      phone_no = widget.user.phone_no.toString().replaceAll(RegExp('[^0-9+]'), '');
+      phone_no = widget.creator.phone_no.toString().replaceAll(RegExp('[^0-9+]'), '');
     }
-    if (widget.user.photo?.isEmpty ?? true) {
+    if (widget.creator.photo?.isEmpty ?? true) {
       photo = '202302160552-profile-white.png';
     } else {
-      photo = widget.user.photo.toString();
+      photo = widget.creator.photo.toString();
     }
 
-    if (widget.user.email?.isEmpty ?? true) {
+    if (widget.creator.email?.isEmpty ?? true) {
       email = " ";
     } else {
-      email = widget.user.email.toString();
+      email = widget.creator.email.toString();
     }
 
-    if (widget.user.designation?.isEmpty ?? true) {
+    if (widget.creator.designation?.isEmpty ?? true) {
       designation = " ";
     } else {
-      designation = widget.user.designation.toString();
+      designation = widget.creator.designation.toString();
     }
 
-    if (widget.user.organization?.isEmpty ?? true) {
+    if (widget.creator.organization?.isEmpty ?? true) {
       organization = " ";
     } else {
-      organization = widget.user.organization.toString();
+      organization = widget.creator.organization.toString();
     }
 
-    if (widget.user.date_of_birth?.isEmpty ?? true) {
+    if (widget.creator.date_of_birth?.isEmpty ?? true) {
       dob = " ";
     } else {
       //final splitted = string.split(' ');
-      final temp = widget.user.date_of_birth.toString().split('-');
+      final temp = widget.creator.date_of_birth.toString().split('-');
       print(temp);
       final year = temp[0];
       final month = StaticMethods.getMonth(temp[1]);
@@ -100,28 +93,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
       dob = '$date $month';
     }
 
-    if (widget.user.gender?.isEmpty ?? true) {
+    if (widget.creator.gender?.isEmpty ?? true) {
       gender = " ";
     } else {
-      gender = widget.user.gender.toString();
+      gender = widget.creator.gender.toString();
     }
 
-    if (widget.user.address?.isEmpty ?? true) {
+    if (widget.creator.address?.isEmpty ?? true) {
       address = " ";
     } else {
-      address = widget.user.address.toString();
+      address = widget.creator.address.toString();
     }
 
-    if (widget.user.social_media?.isEmpty ?? true) {
+    if (widget.creator.social_media?.isEmpty ?? true) {
       socialLinks = " ";
     } else {
-      socialLinks = widget.user.social_media.toString();
+      socialLinks = widget.creator.social_media.toString();
     }
 
-    if (widget.user.note?.isEmpty ?? true) {
+    if (widget.creator.note?.isEmpty ?? true) {
       note = " ";
     } else {
-      note = widget.user.note.toString();
+      note = widget.creator.note.toString();
     }
 
     print(
@@ -129,22 +122,94 @@ class _UserProfilePageState extends State<UserProfilePage> {
             '$gender : $address : $socialLinks : $note');
   }
 
+  @override
+  Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    return Scaffold(
+      body: Container(
+        height: height,
+        width: width,
+        //color: Colors.green,
+        child: Stack(
+          children: <Widget>[
+//User Image
+            //Contact Image
+            Positioned(
+              top: 0,
+              right: 0,
+              child: ClipPath(
+                  clipper: OvalBottomBorderClipper(),
+                  child: Container(
+                    height: (width * (870 / 1080)) + 10,
+                    width: width,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF926AD3),
+                    ),
+
+                    child: Image.network(
+                      image + photo.toString(),
+                      fit: BoxFit.fitHeight,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, url, error) => Icon(
+                        Icons.error,
+                        color: Colors.white,
+                      ),
+                    ),
+                    //color: Colors.red,
+                    // child: Image.network(
+                    //   image + widget.user.photo.toString(),
+                    //   fit: BoxFit.fitHeight,
+                    // ),
+                  )),
+            ),
+            //Image shadow
+            Positioned(
+                top: 0,
+                height: (width * (300 / 1080)),
+                width: width,
+                child: Image.asset(
+                  'assets/images/overlay.png',
+                  fit: BoxFit.fitWidth,
+                )),
+            Positioned(top: 30, left: 0, child: _backButton()),
+            Positioned(top: 30, right: 0, child: _topRightButtons()),
+
+            Positioned(
+                top: (width * (870 / 1080)),
+                left: 20,
+                right: 20,
+                bottom: 2,
+                child: ListView(
+                  //physics: ClampingScrollPhysics(),
+                  shrinkWrap: true,
+                  children: [
+                    _textFieldWidget(),
+                  ],
+                ))
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _backButton() {
     return Column(
       children: [
         InkWell(
           onTap: () {
-            if(widget.isChanged) {
-              Navigator.pop(context);
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) => ContactListPage(
-                        token: ContactListPage.barerToken,
-                      ))));
-            } else {
-              Navigator.pop(context);
-            }
+            Get.back();
+            //Navigator.pop(context);
           },
           child: Container(
             margin: const EdgeInsets.fromLTRB(20, 15, 0, 0),
@@ -163,29 +228,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ],
     );
   }
-
   Widget _topRightButtons() {
     return Row(
       children: [
-        //EDIT BUTTON
-        InkWell(
-          onTap: () {
-            print("Taped edit");
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: ((context) => UpdateUserProfilePage(
-                      user: widget.user,
-                    ))));
-          },
-          child: Container(
-            padding:
-            const EdgeInsets.only(left: 0, top: 10, bottom: 10, right: 10),
-            //Icon(Icons.more_vert)
-            child: Icon(Icons.drive_file_rename_outline_rounded,
-                color: Colors.white),
-          ),
-        ),
         InkWell(
           onTap: () {
             print("Taped middle");
@@ -254,7 +299,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ],
     );
   }
-
   void logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -278,16 +322,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       print(e.toString());
     }
   }
-
-  Widget _contactImage() {
-    return Container(
-      // height: MediaQuery.of(context).size.height *.5,
-      width: MediaQuery.of(context).size.width,
-
-      child: Image.asset('assets/images/contact.jpg'),
-    );
-  }
-
   Widget _textField(String hintText, String value, Icon icon) {
     TextEditingController controller = TextEditingController();
     if (value != " ") {
@@ -313,7 +347,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
           filled: true),
     );
   }
-
   Widget _textFieldWidget() {
     print("_TEXT_FIELD " + name + phone_no + email);
     return Padding(
@@ -355,112 +388,4 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
-    return Scaffold(
-      body: Container(
-        height: height,
-        width: width,
-        //color: Colors.green,
-        child: Stack(
-          children: <Widget>[
-//User Image
-            //Contact Image
-            Positioned(
-                top: 0,
-                right: 0,
-                child: ClipPath(
-                  clipper: OvalBottomBorderClipper(),
-                  child: Container(
-                    height: (width * (870 / 1080)) + 10,
-                    width: width,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF926AD3),
-                    ),
-
-                    child: Image.network(
-                      image + photo.toString(),
-                      fit: BoxFit.fitHeight,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, url, error) => Icon(Icons.error,color: Colors.white,),
-                    ),
-                    //color: Colors.red,
-                    // child: Image.network(
-                    //   image + widget.user.photo.toString(),
-                    //   fit: BoxFit.fitHeight,
-                    // ),
-                  )),
-                ),
-            //Image shadow
-            Positioned(
-                top: 0,
-                height: (width * (300 / 1080)),
-                width: width,
-                child: Image.asset(
-                  'assets/images/overlay.png',
-                  fit: BoxFit.fitWidth,
-                )),
-            Positioned(top: 30, left: 0, child: _backButton()),
-            Positioned(top: 30, right: 0, child: _topRightButtons()),
-
-            Positioned(
-                top: (width * (870 / 1080)),
-                left: 20,
-                right: 20,
-                bottom: 2,
-                child: ListView(
-                  //physics: ClampingScrollPhysics(),
-                  shrinkWrap: true,
-                  children: [
-                    _textFieldWidget(),
-                  ],
-                ))
-          ],
-        ),
-      ),
-    );
-  }
 }
-// Container(
-//   //padding: EdgeInsets.symmetric(horizontal: 20),
-//   margin: EdgeInsets.only(top: 80),
-//   child: SingleChildScrollView(
-//     child: Column(
-//       crossAxisAlignment: CrossAxisAlignment.center,
-//       mainAxisAlignment: MainAxisAlignment.center,
-//       children: <Widget>[
-//         //Image.asset('assets/images/contact.jpg'),
-//         Positioned(
-//           top: -MediaQuery.of(context).size.height * .15,
-//           //right: -MediaQuery.of(context).size.width * .4,
-//           child: Image.asset('assets/images/contact.jpg'),
-//         ),
-//         SizedBox(height: 50),
-//
-//         SizedBox(height: 20),
-//
-//
-//         // _genderDropDown(),
-//         SizedBox(height: 20),
-//         // _submitButton(),
-//         SizedBox(height: 20),
-//       ],
-//     ),
-//   ),
-// ),
-//Positioned(top: 14,child: Image.asset('assets/images/contact.jpg',width: 50,height: 50,),),
-//Positioned(top: 40, right: 0, child: _button()),
-// Positioned(top: 10,child: Image.asset('assets/images/contact.jpg',width: 100,height: 100,),),

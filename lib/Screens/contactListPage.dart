@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:community_app/Screens/AlphabeticScrollView.dart';
 import 'package:community_app/Screens/Auth/settingsPage.dart';
+import 'package:community_app/Screens/testImagePicker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -16,7 +17,7 @@ import 'Group/groupListPage.dart';
 import 'User/userProfilePage.dart';
 import 'customSearchDelegate.dart';
 import 'Contact/newContactAddPage.dart';
-import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 class ContactListPage extends StatefulWidget {
   final String token;
@@ -77,7 +78,7 @@ class _ContactListPageState extends State<ContactListPage> {
         'Authorization': 'Bearer ${prefs.getString('token')}'
       });
       var data = jsonDecode(response.body.toString());
-       //print(response.body.toString());
+      //print(response.body.toString());
       if (response.statusCode == 200) {
         for (Map i in data) {
           bool status = isPresent(i['name']);
@@ -127,14 +128,12 @@ class _ContactListPageState extends State<ContactListPage> {
     if (futureContactList.toString().isEmpty) {
       _nullMassage = true;
     }
-    if(type == "favourite") {
+    if (type == "favourite") {
       return ContactListPage.favouriteList;
     } else {
       return ContactListPage.contactList;
     }
-
   }
-
 
   Future<void> getAllContactApi() async {
     print('Start');
@@ -144,9 +143,8 @@ class _ContactListPageState extends State<ContactListPage> {
 
     final prefs = await SharedPreferences.getInstance();
     ContactListPage.barerToken = 'Bearer ${prefs.getString('token')}';
-    String url =
-    'https://scm.womenindigital.net/api/contacts';
-        //'https://scm.womenindigital.net/api/${prefs.getInt('loginID')}/allConnections';
+    String url = 'https://scm.womenindigital.net/api/contacts';
+    //'https://scm.womenindigital.net/api/${prefs.getInt('loginID')}/allConnections';
 
     try {
       final response = await http.get(Uri.parse(url), headers: {
@@ -155,7 +153,7 @@ class _ContactListPageState extends State<ContactListPage> {
       });
       print("getAllContactApi " + response.statusCode.toString());
       var data = jsonDecode(response.body.toString());
-      print("All Contacts "+response.body.toString());
+      print("All Contacts " + response.body.toString());
       if (response.statusCode == 200) {
         for (Map i in data['OwnContact']) {
           print("OwnContact: name " + i['name']);
@@ -181,9 +179,7 @@ class _ContactListPageState extends State<ContactListPage> {
             ContactListPage.allContacts.add(Contact.fromJson(i));
           }
         }
-      } else {
-
-      }
+      } else {}
     } on Exception catch (e) {
       // TODO
       Get.snackbar(
@@ -199,12 +195,11 @@ class _ContactListPageState extends State<ContactListPage> {
       print(e.toString());
     }
     print(ContactListPage.allContacts);
-
   }
 
   bool isFavourite(String status) {
     if (status == 'true') {
-     // print(status);
+      // print(status);
       return true;
     } else {
       //print(status);
@@ -413,16 +408,16 @@ class _ContactListPageState extends State<ContactListPage> {
                               //   ),
                               //   duration: Duration(milliseconds: 1000),
                               // ));
-                      Get.snackbar(
-                        "Warning",
-                        "Phone number is not saved!",
-                        colorText: Colors.white,
-                        //icon: Icon(Icons.person, color: Colors.white),
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Color(0xFF926AD3),
-                        duration: Duration(seconds: 4),
-                        isDismissible: true,
-                      );
+                              Get.snackbar(
+                                "Warning",
+                                "Phone number is not saved!",
+                                colorText: Colors.white,
+                                //icon: Icon(Icons.person, color: Colors.white),
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Color(0xFF926AD3),
+                                duration: Duration(seconds: 4),
+                                isDismissible: true,
+                              );
                             }),
                     child: Icon(
                       Icons.call,
@@ -511,36 +506,20 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget _floatingActionButton() {
     return InkWell(
       onTap: () {
-        Get.to(NewContactAddPage(
-          contactList: ContactListPage.contactList,
-        ));
-        // Navigator.push(
-        //     context,
-        //     MaterialPageRoute(
-        //         builder: (context) => NewContactAddPage(
-        //               contactList: ContactListPage.contactList,
-        //             )));
+        Get.to(() => NewContactAddPage(
+              contactList: ContactListPage.contactList,
+            ));
       },
       child: isFabVisible
           ? FloatingActionButton(
               backgroundColor: Colors.white,
               foregroundColor: const Color(0xFF926AD3),
               onPressed: () {
-                // Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context) => NewContactAddPage(
-                //               contactList: ContactListPage.contactList,
-                //             )));
-                Get.to(NewContactAddPage(
-                  contactList: ContactListPage.contactList,
-                ));
-                // Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context) => NewContactAddPage(
-                //               contactList: ContactListPage.contactList,
-                //             )));
+                Get.to(
+                  () => NewContactAddPage(
+                    contactList: ContactListPage.contactList,
+                  ),
+                );
               },
               child: const Icon(Icons.person_add_alt_1_rounded),
             )
@@ -551,6 +530,7 @@ class _ContactListPageState extends State<ContactListPage> {
   Future<void> getUserDetailsApi() async {
     ContactListPage.user.clear();
     final prefs = await SharedPreferences.getInstance();
+    print('${prefs.getInt('loginID')}');
 
     ///api/user/10/show
     String url =
@@ -565,7 +545,7 @@ class _ContactListPageState extends State<ContactListPage> {
       //print("${response.statusCode} $data");
       if (response.statusCode == 200) {
         for (Map i in data) {
-         // print("name " + i['name']);
+          // print("name " + i['name']);
           ContactListPage.user.add(User(
             id: i['id'],
             name: i['name'],
@@ -697,7 +677,6 @@ class _ContactListPageState extends State<ContactListPage> {
         onSelected: (value) async {
           if (value == 0) {
             Get.to(() => GroupListPage());
-
           }
           if (value == 1) {
             if (kDebugMode) {
@@ -706,10 +685,10 @@ class _ContactListPageState extends State<ContactListPage> {
             //widget.contact.favourite?.isEmpty ?? true
             if (ContactListPage.user!.isNotEmpty ?? true) {
               Get.to(() => UserProfilePage(
-                user: ContactListPage.user[0],
-                isChanged: false,
-              ));
-             // Get.to();
+                    user: ContactListPage.user[0],
+                    isChanged: false,
+                  ));
+              // Get.to();
               // Navigator.push(
               //     context,
               //     MaterialPageRoute(
@@ -797,7 +776,6 @@ class _ContactListPageState extends State<ContactListPage> {
     FocusScopeNode currentFocus = FocusScope.of(context);
     if (!currentFocus.hasPrimaryFocus) {
       currentFocus.unfocus();
-
     }
     print("BUILT");
     return DefaultTabController(
@@ -899,14 +877,15 @@ class _ContactListPageState extends State<ContactListPage> {
                             future: futureContactList,
                             builder: (context,
                                 AsyncSnapshot<List<Contact>> snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return const Center(
                                   child: CircularProgressIndicator(
                                     color: Colors.white,
                                   ),
                                 );
-                              }
-                              else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                              } else if (snapshot.hasData &&
+                                  snapshot.data!.isEmpty) {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 20.0),
                                   child: Center(
@@ -919,8 +898,7 @@ class _ContactListPageState extends State<ContactListPage> {
                                     ),
                                   ),
                                 );
-                              }
-                              else if (snapshot.hasError) {
+                              } else if (snapshot.hasError) {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 20.0),
                                   child: Center(
@@ -933,11 +911,10 @@ class _ContactListPageState extends State<ContactListPage> {
                                     ),
                                   ),
                                 );
-                              }
-                              else if (snapshot.hasData) {
-                                return AlphabeticScrollView(items: snapshot.data!);
-                              }
-                              else {
+                              } else if (snapshot.hasData) {
+                                return AlphabeticScrollView(
+                                    items: snapshot.data!);
+                              } else {
                                 return const Center(
                                   child: Text(
                                     "Something went wrong",
@@ -958,15 +935,17 @@ class _ContactListPageState extends State<ContactListPage> {
                           onRefresh: _refresh,
                           child: FutureBuilder(
                             future: futureFavouriteList,
-                            builder: (BuildContext context, AsyncSnapshot<List<Contact>> snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                            builder: (BuildContext context,
+                                AsyncSnapshot<List<Contact>> snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return const Center(
                                   child: CircularProgressIndicator(
                                     color: Colors.white,
                                   ),
                                 );
-                              }
-                              else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                              } else if (snapshot.hasData &&
+                                  snapshot.data!.isEmpty) {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 20.0),
                                   child: Text(
@@ -977,8 +956,7 @@ class _ContactListPageState extends State<ContactListPage> {
                                     ),
                                   ),
                                 );
-                              }
-                              else if (snapshot.hasError) {
+                              } else if (snapshot.hasError) {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 20.0),
                                   child: Text(
@@ -989,11 +967,11 @@ class _ContactListPageState extends State<ContactListPage> {
                                     ),
                                   ),
                                 );
-                              }
-                              else if (snapshot.hasData) {
-                                return AlphabeticScrollView(items: ContactListPage.favouriteList,);
-                              }
-                              else {
+                              } else if (snapshot.hasData) {
+                                return AlphabeticScrollView(
+                                  items: ContactListPage.favouriteList,
+                                );
+                              } else {
                                 return const Center(
                                   child: Text(
                                     "Something went wrong",
@@ -1001,9 +979,9 @@ class _ContactListPageState extends State<ContactListPage> {
                                   ),
                                 );
                               }
-
-                            },),
-                      ),
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ],

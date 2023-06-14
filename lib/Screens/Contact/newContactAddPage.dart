@@ -61,7 +61,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   String errorText = 'Name Can\'t Be Empty';
   String _completePhnNo = '';
   late String _id;
-
+  List<File> selectedImages = [];
   @override
   void initState() {
     super.initState();
@@ -562,7 +562,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.text,
           Icon(Icons.note_alt_rounded),
         ),
-        MultipleImageSelector(),
+        MultipleImageSelector(selectedImages: selectedImages,),
         // _entryField("Password", isPassword: true),
       ],
     );
@@ -651,6 +651,7 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
   Widget _saveButton() {
     return InkWell(
       onTap: () {
+        print(selectedImages);
         FocusScopeNode currentFocus = FocusScope.of(context);
         if (!currentFocus.hasPrimaryFocus) {
           currentFocus.unfocus();

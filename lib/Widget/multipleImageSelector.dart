@@ -4,32 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(primaryColor: Colors.green),
-      home: const MultipleImageSelector(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
 class MultipleImageSelector extends StatefulWidget {
-  const MultipleImageSelector({Key? key}) : super(key: key);
+  List<File> selectedImages = [];
+  MultipleImageSelector({Key? key, required this.selectedImages}) : super(key: key);
 
   @override
   State<MultipleImageSelector> createState() => _MultipleImageSelectorState();
 }
 
 class _MultipleImageSelectorState extends State<MultipleImageSelector> {
-  List<File> selectedImages = [];
+ // List<File> selectedImages = [];
   final picker = ImagePicker();
 
   @override
@@ -54,20 +38,20 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
             Container(
               height: 200,
               color: Colors.grey,
-              child: (selectedImages.isEmpty) ? Center(child: Text('Nothing is selected yet'))
+              child: (widget.selectedImages.isEmpty) ? Center(child: Text('Nothing is selected yet'))
                   :SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    for (int index = 0; index < selectedImages.length; index++)
+                    for (int index = 0; index < widget.selectedImages.length; index++)
                       Padding(
                         padding: const EdgeInsets.all(10),
                         child: Stack(
                           children: [
                             Center(
                               child: kIsWeb
-                                  ? Image.network(selectedImages[index].path)
-                                  : Image.file(selectedImages[index]),
+                                  ? Image.network(widget.selectedImages[index].path)
+                                  : Image.file(widget.selectedImages[index]),
                             ),
                             Positioned(
                               top: 5,
@@ -192,7 +176,7 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
     setState(() {
       if (xfilePick.isNotEmpty) {
         for (var i = 0; i < xfilePick.length; i++) {
-          selectedImages.add(File(xfilePick[i].path));
+          widget.selectedImages.add(File(xfilePick[i].path));
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -204,7 +188,7 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
 
   void removeImage(int index) {
     setState(() {
-      selectedImages.removeAt(index);
+      widget.selectedImages.removeAt(index);
     });
   }
 }

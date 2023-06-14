@@ -111,20 +111,18 @@ class _AlphabeticScrollViewState extends State<AlphabeticScrollView> {
                     //tilePadding: EdgeInsets.only(right: 35),
                     leading: InkWell(
                       onTap: () {
-                        Get.to(SingleContactDetailsPage(
+                        Get.to(() => SingleContactDetailsPage(
                           contactID: widget.items[index].id!,
                           contact: widget.items[index],
                           token: ContactListPage.barerToken,
-                          isChanged: false,
+                          isChanged: false, from: 'contact_list', creator: widget.items[index].created_by!,
                         ));
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (context) => SingleContactDetailsPage(
-                        //               contact: widget.items[index],
-                        //               token: ContactListPage.barerToken,
-                        //               isChanged: false,
-                        //             )));
+                        // Get.to(SingleContactDetailsPage(
+                        //   contactID: widget.items[index].id!,
+                        //   contact: widget.items[index],
+                        //   token: ContactListPage.barerToken,
+                        //   isChanged: false,
+                        // ));
                       },
                       child: CircleAvatar(
                         radius: 17,
@@ -153,20 +151,12 @@ class _AlphabeticScrollViewState extends State<AlphabeticScrollView> {
 
                     title: InkWell(
                         onTap: () {
-                          Get.to(SingleContactDetailsPage(
+                          Get.to(() => SingleContactDetailsPage(
                             contactID: widget.items[index].id!,
                             contact: widget.items[index],
                             token: ContactListPage.barerToken,
-                            isChanged: false,
+                            isChanged: false, from: 'contact_list', creator: widget.items[index].created_by!,
                           ));
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => SingleContactDetailsPage(
-                          //               contact: widget.items[index],
-                          //               token: ContactListPage.barerToken,
-                          //               isChanged: false,
-                          //             )));
                         },
                         child: Text(
                           widget.items[index].name.toString(),
@@ -375,7 +365,7 @@ class _AlphabeticScrollViewState extends State<AlphabeticScrollView> {
                     contactID: contact.id!,
                     contact: contact,
                     token: ContactListPage.barerToken,
-                    isChanged: false,
+                    isChanged: false, from: 'contact_list', creator: contact.created_by!,
                   ));
                 },
                 child: Text("View Details"),

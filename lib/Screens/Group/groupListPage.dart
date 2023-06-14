@@ -132,7 +132,7 @@ class _GroupListPageState extends State<GroupListPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.assignment_ind_rounded),
+                      //Icon(Icons.assignment_ind_rounded),
                       Text('My Groups')
                     ],
                   ),
@@ -141,7 +141,7 @@ class _GroupListPageState extends State<GroupListPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.star_rate_rounded),
+                      //Icon(Icons.star_rate_rounded),
                       Text('External Groups')
                     ],
                   ),
@@ -249,7 +249,7 @@ class _GroupListPageState extends State<GroupListPage> {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
-                        "You are not add to any other groups!\nto Join Group, press the +(plus) icon above.",
+                        "You are not add to any other groups!\nto Join Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white,),
                       ),
@@ -259,7 +259,7 @@ class _GroupListPageState extends State<GroupListPage> {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
-                        "You are not add to any other groups!\nto Join Group, press the +(plus) icon above.",
+                        "You are not add to any other groups!\nto Join Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white,),
                       ),
@@ -503,15 +503,10 @@ class _GroupListPageState extends State<GroupListPage> {
   _joinGroupBottomSheet() {
     return Get.bottomSheet(
       isScrollControlled: true,
-      Container(
-        height: 350,
-        color: Colors.white,
-        padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-        child: JoinGroupDialogContent(),
-      ),
-      isDismissible: false,
+      JoinGroupDialogContent(),
+      //isDismissible: false,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(35),
+        borderRadius: BorderRadius.circular(10),
       ),
       enableDrag: false,
     );

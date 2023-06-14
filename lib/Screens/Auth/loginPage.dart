@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       Response response = await post(
           //https://scm.womenindigital.net/api/auth/login
-          Uri.parse('https://scm.womenindigital.net/api/auth/login'),
+          Uri.parse('https://scm.womenindigital.net/api/auth/loginUser'),
           body: {'email': email, 'password': password});
 
       if (response.statusCode == 200) {
