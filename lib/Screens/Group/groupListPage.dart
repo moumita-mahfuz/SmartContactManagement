@@ -14,6 +14,7 @@ import '../Auth/loginPage.dart';
 import '../Auth/settingsPage.dart';
 import '../User/userProfilePage.dart';
 import '../contactListPage.dart';
+import 'createGroup.dart';
 import 'joinGroupDialogContent.dart';
 import 'groupNotification.dart';
 
@@ -171,28 +172,29 @@ class _GroupListPageState extends State<GroupListPage> {
                         color: Colors.white,
                       ),
                     );
-                  }
-                  else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                  } else if (snapshot.hasData && snapshot.data!.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
                         "No Group created yet!\nto Create Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white,),
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     );
-                  }
-                  else if (snapshot.hasError) {
+                  } else if (snapshot.hasError) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
                         "No Group created yet!\nto Create Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white,),
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     );
-                  }
-                  else if (snapshot.hasData) {
+                  } else if (snapshot.hasData) {
                     return Padding(
                       padding: EdgeInsets.only(left: 20.0, right: 20),
                       child: ListView.builder(
@@ -213,17 +215,16 @@ class _GroupListPageState extends State<GroupListPage> {
                               ),
                               onTap: () => {
                                 Get.to(() => MyGroupSingleView(
-                                  groupName: item.groupName.toString(),
-                                  groupId: item.groupId.toString(),
-                                )),
+                                      groupName: item.groupName.toString(),
+                                      groupId: item.groupId.toString(),
+                                    )),
                               },
                               // subtitle:
                               //     Text("Price: ${item.productPrice!.price}"),
                             );
                           }),
                     );
-                  }
-                  else {
+                  } else {
                     return const Center(
                       child: Text(
                         "Something went wrong",
@@ -244,28 +245,29 @@ class _GroupListPageState extends State<GroupListPage> {
                         color: Colors.white,
                       ),
                     );
-                  }
-                  else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                  } else if (snapshot.hasData && snapshot.data!.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
                         "You are not add to any other groups!\nto Join Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white,),
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     );
-                  }
-                  else if (snapshot.hasError) {
+                  } else if (snapshot.hasError) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 20.0),
                       child: Text(
                         "You are not add to any other groups!\nto Join Groups, press the +(plus) icon above.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white,),
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     );
-                  }
-                  else if (snapshot.hasData) {
+                  } else if (snapshot.hasData) {
                     return ListView.builder(
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
@@ -297,8 +299,7 @@ class _GroupListPageState extends State<GroupListPage> {
                             ),
                           );
                         });
-                  }
-                  else {
+                  } else {
                     return const Center(
                       child: Text(
                         "Something went wrong",
@@ -386,7 +387,7 @@ class _GroupListPageState extends State<GroupListPage> {
             }
             Get.to(SettingPage());
           } else if (value == 2) {
-             logout();
+            logout();
             if (kDebugMode) {
               print("Logout menu is selected.");
             }
@@ -424,80 +425,92 @@ class _GroupListPageState extends State<GroupListPage> {
 
   _groupAddDialog() {
     groupNameController.text = '';
-    return Get.defaultDialog(
-      title: "Create Group",
-      //middleText: "Hello world!",
-      backgroundColor: Colors.white,
-      titleStyle: TextStyle(color: Color(0xFF926AD3)),
-      // middleTextStyle: TextStyle(color: Colors.white),
-      confirm: ElevatedButton(
-          onPressed: () async => {
-                // Validate returns true if the form is valid, or false otherwise.
-                if (_createGroupFormKey.currentState!.validate())
-                  {
-                    setState(() {
-                      _circularIndicator = false;
-                    }),
-                    await _createGroup(groupNameController.text),
-                    setState(() {
-                      _circularIndicator = true;
-                    }),
-                    Future.delayed(Duration(milliseconds: 100), () {
-                      Get.back(); // Close the sheet after the request is completed and the snackbar is closed
-                      Get.snackbar('Congratulations', 'Your group has been created!',
-                          colorText: Color(0xFF926AD3),
-                          backgroundColor: Colors.white,
-                          snackPosition: SnackPosition.BOTTOM);
-                    }),
-                  }
-              },
-          child: (_circularIndicator)
-              ? Row(
-                  children: [
-                    CircularProgressIndicator(
-                      strokeWidth: 3,
-                      backgroundColor: Colors.white,
-                    ),
-                    Text(" Creating "),
-                  ],
-                )
-              : Text("  Create  ")),
-      cancel: ElevatedButton(
-        onPressed: () => Get.back(),
-        child: Text(
-          "  Cancel  ",
-          style: TextStyle(color: Color(0xFF926AD3)),
-        ),
-        style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            side: BorderSide(color: Color(0xFF926AD3))
-            // Background color
-            ),
-      ),
-      content: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: Form(
-            key: _createGroupFormKey,
-            child: TextFormField(
-              controller: groupNameController,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Group Name',
-              ),
-              // The validator receives the text that the user has entered.
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Group Name is required!';
-                }
-                return null;
-              },
-            ),
-          ),
-        ),
-      ),
+    return Get.bottomSheet(
+      CreateGroup(),
     );
+    // return Get.defaultDialog(
+    //   title: "Create Group",
+    //   //middleText: "Hello world!",
+    //   backgroundColor: Colors.white,
+    //   titleStyle: TextStyle(color: Color(0xFF926AD3)),
+    //   // middleTextStyle: TextStyle(color: Colors.white),
+    //   confirm: ElevatedButton(
+    //       onPressed: () async => {
+    //             // Validate returns true if the form is valid, or false otherwise.
+    //             if (_createGroupFormKey.currentState!.validate()) {
+    //                 setState(() {
+    //                   _circularIndicator = true;
+    //                 }),
+    //                 await _createGroup(groupNameController.text),
+    //                 setState(() {
+    //                   _circularIndicator = false;
+    //                 }),
+    //                 Future.delayed(Duration(milliseconds: 100), () {
+    //                   Get.back(); // Close the sheet after the request is completed and the snackbar is closed
+    //                   Get.snackbar(
+    //                       'Congratulations', 'Your group has been created!',
+    //                       colorText: Color(0xFF926AD3),
+    //                       backgroundColor: Colors.white,
+    //                       snackPosition: SnackPosition.BOTTOM);
+    //                 }),
+    //               }
+    //           },
+    //       child: (_circularIndicator)
+    //           ? Row(
+    //               children: [
+    //                 SizedBox(
+    //                   child: CircularProgressIndicator(
+    //                     strokeWidth: 3,
+    //                     backgroundColor: Colors.white,
+    //                   ),
+    //                   height: 12,
+    //                   width: 12,
+    //                 ),
+    //                 Text(" Creating "),
+    //               ],
+    //             )
+    //           : Text("  Create  ")),
+    //   cancel: ElevatedButton(
+    //     onPressed: () => {
+    //       setState(() {
+    //         _circularIndicator = false;
+    //       }),
+    //       Get.back(),
+    //     },
+    //     child: Text(
+    //       "  Cancel  ",
+    //       style: TextStyle(color: Color(0xFF926AD3)),
+    //     ),
+    //     style: ElevatedButton.styleFrom(
+    //         backgroundColor: Colors.white,
+    //         side: BorderSide(color: Color(0xFF926AD3))
+    //         // Background color
+    //         ),
+    //   ),
+    //   content: Center(
+    //     child: Padding(
+    //       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+    //       child: Form(
+    //         key: _createGroupFormKey,
+    //         child: TextFormField(
+    //           controller: groupNameController,
+    //           textCapitalization: TextCapitalization.words,
+    //           decoration: InputDecoration(
+    //             border: OutlineInputBorder(),
+    //             hintText: 'Group Name',
+    //           ),
+    //           // The validator receives the text that the user has entered.
+    //           validator: (value) {
+    //             if (value == null || value.isEmpty) {
+    //               return 'Group Name is required!';
+    //             }
+    //             return null;
+    //           },
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 
   _joinGroupBottomSheet() {
@@ -520,7 +533,7 @@ class _GroupListPageState extends State<GroupListPage> {
     });
 
     if (response.statusCode == 200) {
-     // print(response.body.toString());
+      // print(response.body.toString());
       final jsonBody = jsonDecode(response.body);
       final data = jsonBody['data'] as List<dynamic>;
       if (data.isEmpty) {

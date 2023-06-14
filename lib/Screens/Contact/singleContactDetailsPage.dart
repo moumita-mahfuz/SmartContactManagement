@@ -18,6 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../Model/User.dart';
 import '../../Model/contact.dart';
 import '../../Widget/galleryBottomSheet.dart';
+import '../../Widget/multipleImageSelector.dart';
 import '../Auth/loginPage.dart';
 import '../User/userProfilePage.dart';
 import 'dart:async';
@@ -72,6 +73,8 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   bool _isChange = false;
   Future<void>? _launched;
   String shareText = '';
+  List<File> selectedImages = [];
+  bool _searchCircularIndicator = false;
 
   //https://scm.womenindigital.net/storage/uploads/202302120406-Twitter-logo-png.png
   @override
@@ -174,29 +177,28 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                       child: Container(
                         child: (widget.from == 'search')
                             ? Row(
-                              children: [
-                                Text('Contact from: '),
-                                InkWell(
-                                  onTap: () => {
-                                    if (widget.creator !=
-                                        ContactListPage.user[0].id)
-                                      {
-                                        print("tapped"),
-                                        Get.to(() =>  CreatorProfile(
-                                          creator: creatorProfile,
-                                        )),
-
-                                      }
-                                  },
-                                  child: Text(
-                                    '$creator',
-                                    style: TextStyle(
-                                        color: Color(0xFF926AD3),
-                                        fontSize: 18),
+                                children: [
+                                  Text('Contact from: '),
+                                  InkWell(
+                                    onTap: () => {
+                                      if (widget.creator !=
+                                          ContactListPage.user[0].id)
+                                        {
+                                          print("tapped"),
+                                          Get.to(() => CreatorProfile(
+                                                creator: creatorProfile,
+                                              )),
+                                        }
+                                    },
+                                    child: Text(
+                                      '$creator',
+                                      style: TextStyle(
+                                          color: Color(0xFF926AD3),
+                                          fontSize: 18),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            )
+                                ],
+                              )
                             : null,
                       ),
                     ),
@@ -569,6 +571,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   Widget _topRightThreeButtons(BuildContext context) {
     return Row(
       children: [
+        //EDIT BUTTON
         InkWell(
           onTap: () {
             setState(() {
@@ -588,6 +591,88 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
             //Icon(Icons.more_vert)
             child: Icon(Icons.drive_file_rename_outline_rounded,
                 color: Colors.white),
+          ),
+        ),
+        //PHOTO ADD BUTTON
+        InkWell(
+          onTap: () {
+            setState(() {
+              _isChange = true;
+            });
+            print("Taped add photo");
+
+            Get.bottomSheet(
+              GestureDetector(
+                onTap: () {
+                  Get.back(); // Close the bottom sheet when tapping outside
+                },
+                child: Container(
+                  height: 400,
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MultipleImageSelector(
+                          selectedImages: selectedImages,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () => Get.back(),
+                            child: Text(
+                              "  Cancel  ",
+                              style: TextStyle(color: Color(0xFF926AD3)),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              side: BorderSide(color: Color(0xFF926AD3)),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          ElevatedButton(
+                            onPressed: () => {
+                              print('tapped save'),
+                              setState(() {
+                                _searchCircularIndicator = true;
+                              }),
+                            },
+                            child: (_searchCircularIndicator)
+                                ? Row(
+                                    children: [
+                                      SizedBox(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3,
+                                          backgroundColor: Colors.white,
+                                        ),
+                                        height: 12,
+                                        width: 12,
+                                      ),
+                                      Text("Saving"),
+                                    ],
+                                  )
+                                : Text("    Save    "),
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      Spacer(),
+                    ],
+                  ),
+                ),
+              ),
+              //backgroundColor: Colors.transparent,
+            );
+          },
+          child: Container(
+            padding:
+                const EdgeInsets.only(left: 0, top: 10, bottom: 10, right: 10),
+            //Icon(Icons.more_vert)
+            child: Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
           ),
         ),
         //SHARE BUTTON
@@ -1010,7 +1095,6 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                       Icons.star_border_rounded,
                       color: Colors.white,
                     )),
-
           const SizedBox(
             width: 15,
           ),
@@ -1071,16 +1155,6 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
               color: Colors.white,
             ),
           ),
-          // ElevatedButton(
-          //   onPressed: _hasCallSupport
-          //       ? () => setState(() {
-          //             _launched = _makePhoneCall(widget.contact.phone_no!);
-          //           })
-          //       : null,
-          //   child: _hasCallSupport
-          //       ? const Text('Make phone call')
-          //       : const Text('Calling not supported'),
-          // ),
           const SizedBox(
             width: 15,
           ),
