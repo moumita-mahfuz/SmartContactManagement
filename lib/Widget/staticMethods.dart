@@ -1,12 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-
-class StaticMethods extends StatelessWidget {
-  const StaticMethods({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
+class StaticMethods {
   static String getMonth(String monthNo) {
     String month = '';
     if (monthNo == '01') {
@@ -36,4 +31,23 @@ class StaticMethods extends StatelessWidget {
     }
     return month;
   }
+
+  static List<int> getImageBytesList (List<File> images)  {
+    List<int> imageBytes = [];
+    for (var image in images) {
+      List<int> bytes = image.readAsBytesSync();
+      imageBytes.addAll(bytes);
+    }
+    return imageBytes;
+  }
 }
+// class StaticMethods extends StatelessWidget {
+//   const StaticMethods({Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Placeholder();
+//   }
+//
+//
+// }

@@ -46,38 +46,41 @@ class _MultipleImageSelectorState extends State<MultipleImageSelector> {
                   for (int index = 0; index < widget.selectedImages.length; index++)
                     Padding(
                       padding: const EdgeInsets.all(10),
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: kIsWeb
-                                ? Image.network(widget.selectedImages[index].path)
-                                : Image.file(widget.selectedImages[index]),
-                          ),
-                          Positioned(
-                            top: 5,
-                            right: 5,
-                            child: GestureDetector(
-                              onTap: () {
-                                removeImage(index);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.white),
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF926AD3),
-                                ),
-                                padding: const EdgeInsets.all(2),
-                                child: Center(
-                                  child: const Icon(
-                                    Icons.close,
-                                    size: 16,
-                                    color: Colors.white,
+                      child: Container(
+                        decoration: BoxDecoration(border: Border.all(color: Color(0xFF926AD3))),
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: kIsWeb
+                                  ? Image.network(widget.selectedImages[index].path)
+                                  : Image.file(widget.selectedImages[index]),
+                            ),
+                            Positioned(
+                              top: 5,
+                              right: 5,
+                              child: GestureDetector(
+                                onTap: () {
+                                  removeImage(index);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.white),
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF926AD3),
+                                  ),
+                                  padding: const EdgeInsets.all(2),
+                                  child: Center(
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                 ],

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import 'package:http/http.dart';
 import 'package:mailto/mailto.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,13 +18,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Model/User.dart';
 import '../../Model/contact.dart';
+import '../../Model/contactGallery.dart';
+import '../../Widget/addPhotoBottomSheet.dart';
 import '../../Widget/galleryBottomSheet.dart';
 import '../../Widget/multipleImageSelector.dart';
 import '../Auth/loginPage.dart';
 import '../User/userProfilePage.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
-import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 class SingleContactDetailsPage extends StatefulWidget {
   final int contactID;
@@ -73,8 +75,8 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
   bool _isChange = false;
   Future<void>? _launched;
   String shareText = '';
-  List<File> selectedImages = [];
-  bool _searchCircularIndicator = false;
+
+
 
   //https://scm.womenindigital.net/storage/uploads/202302120406-Twitter-logo-png.png
   @override
@@ -83,10 +85,10 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
     super.initState();
     shareText = valueInitialization();
 
-    print("Check" +
-        widget.creator!.toString() +
-        "<- creator      userid->" +
-        ContactListPage.user[0].id!.toString());
+    // print("Check" +
+    //     widget.creator!.toString() +
+    //     "<- creator      userid->" +
+    //     ContactListPage.user[0].id!.toString());
     // Check for phone call support.
     getContactCreator();
     canLaunchUrl(Uri(scheme: 'tel', path: '123')).then((bool result) {
@@ -427,10 +429,10 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
         'Authorization': 'Bearer ${prefs.getString('token')}'
       });
       var data = jsonDecode(response.body.toString());
-      print("${response.statusCode} $data");
+      // print("${response.statusCode} $data");
       if (response.statusCode == 200) {
         for (Map i in data) {
-          print("name " + i['name']);
+          // print("name " + i['name']);
           setState(() {
             creator = i['name'];
             creatorProfile = Contact(
@@ -597,74 +599,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
         InkWell(
           onTap: () {
             setState(() {
+
               _isChange = true;
             });
             print("Taped add photo");
 
             Get.bottomSheet(
-              GestureDetector(
-                onTap: () {
-                  Get.back(); // Close the bottom sheet when tapping outside
-                },
-                child: Container(
-                  height: 400,
-                  color: Colors.white,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: MultipleImageSelector(
-                          selectedImages: selectedImages,
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () => Get.back(),
-                            child: Text(
-                              "  Cancel  ",
-                              style: TextStyle(color: Color(0xFF926AD3)),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              side: BorderSide(color: Color(0xFF926AD3)),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          ElevatedButton(
-                            onPressed: () => {
-                              print('tapped save'),
-                              setState(() {
-                                _searchCircularIndicator = true;
-                              }),
-                            },
-                            child: (_searchCircularIndicator)
-                                ? Row(
-                                    children: [
-                                      SizedBox(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 3,
-                                          backgroundColor: Colors.white,
-                                        ),
-                                        height: 12,
-                                        width: 12,
-                                      ),
-                                      Text("Saving"),
-                                    ],
-                                  )
-                                : Text("    Save    "),
-                          ),
-                        ],
-                      ),
-                      Spacer(),
-                      Spacer(),
-                    ],
-                  ),
-                ),
-              ),
+                AddPhotoBottomSheet(contactId: widget.contactID,),
               //backgroundColor: Colors.transparent,
             );
           },
@@ -1187,7 +1128,9 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
           InkWell(
             onTap: () {
               Get.bottomSheet(
-                GalleryBottomSheet(),
+                GalleryBottomSheet(
+                  contactId: widget.contactID,
+                ),
                 backgroundColor: Colors.transparent,
               );
               // _galleryBottomSheet();

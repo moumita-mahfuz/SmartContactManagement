@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:flutter/foundation.dart';
@@ -6,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Model/contact.dart';
@@ -19,6 +17,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 import '../../Widget/multipleImageSelector.dart';
+import '../../Widget/staticMethods.dart';
 
 class NewContactAddPage extends StatefulWidget {
   final List<Contact> contactList;
@@ -112,23 +111,49 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
       'social_media': social_media,
       'note': note,
       'created_by': prefs.getInt('loginID').toString(),
-      'favourite': 'false'
+      'favourite': 'false',
     };
+
+
     var request = http.MultipartRequest('POST', Uri.parse(uri));
-    //print("IMAGE" + _croppedFile.toString() + " " + _croppedFile!.path.toString());
-    if (_croppedFile != null) {
-      //File f = await getImageFileFromAssets('images/profile.png');
-      request.headers.addAll(headers);
-      request.fields.addAll(body);
-      request.files
-          .add(await http.MultipartFile.fromPath('photo', _croppedFile!.path));
+    //print(selectedImages);
+
+    if (selectedImages.isNotEmpty) {
+      List<http.MultipartFile> imageFiles = [];
+      for (var image in selectedImages) {
+        String fileName = image.path.split('/').last;
+        imageFiles.add(await http.MultipartFile.fromPath('multiImage[]', image.path, filename: fileName));
+      }
+      if (_croppedFile != null) {
+        //File f = await getImageFileFromAssets('images/profile.png');
+        request.headers.addAll(headers);
+        request.fields.addAll(body);
+        request.files.add(
+            await http.MultipartFile.fromPath('photo', _croppedFile!.path));
+        request.files.addAll(imageFiles);
+      } else {
+        File f = await getImageFileFromAssets('images/profile-white.png');
+        request.headers.addAll(headers);
+        request.fields.addAll(body);
+        request.files.add(await http.MultipartFile.fromPath('photo', f.path));
+        request.files.addAll(imageFiles);
+      }
     } else {
-      File f = await getImageFileFromAssets('images/profile-white.png');
-      request.headers.addAll(headers);
-      request.fields.addAll(body);
-      request.files.add(await http.MultipartFile.fromPath('photo', f.path));
+      if (_croppedFile != null) {
+        //File f = await getImageFileFromAssets('images/profile.png');
+        request.headers.addAll(headers);
+        request.fields.addAll(body);
+        request.files.add(
+            await http.MultipartFile.fromPath('photo', _croppedFile!.path));
+      } else {
+        File f = await getImageFileFromAssets('images/profile-white.png');
+        request.headers.addAll(headers);
+        request.fields.addAll(body);
+        request.files.add(await http.MultipartFile.fromPath('photo', f.path));
+      }
     }
-    var response = await request.send();
+    http.StreamedResponse response = await request.send();
+   // var response = await request.send();
     if (kDebugMode) {
       print(response.statusCode);
     }
@@ -533,10 +558,17 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.emailAddress,
           Icon(Icons.email_rounded),
         ),
-        DateOfBirth(dobController: dobController, hintText: "Birthday", icon: Icon(Icons.cake_rounded),), // ,, ,
+        DateOfBirth(
+          dobController: dobController,
+          hintText: "Birthday",
+          icon: Icon(Icons.cake_rounded),
+        ), // ,, ,
         //_dateOfBirth("Birthday", Icon(Icons.cake_rounded)),
-        GenderDropDown(genderController: genderController, dropdownvalue: "Male",),
-       // _genderDropDown("Male", Icon(Icons.calendar_today)),
+        GenderDropDown(
+          genderController: genderController,
+          dropdownvalue: "Male",
+        ),
+        // _genderDropDown("Male", Icon(Icons.calendar_today)),
         _entryField(
           "Address",
           addressController,
@@ -562,7 +594,9 @@ class _NewContactAddPageState extends State<NewContactAddPage> {
           TextInputType.text,
           Icon(Icons.note_alt_rounded),
         ),
-        MultipleImageSelector(selectedImages: selectedImages,),
+        MultipleImageSelector(
+          selectedImages: selectedImages,
+        ),
         // _entryField("Password", isPassword: true),
       ],
     );

@@ -62,12 +62,7 @@ class _LoginPageState extends State<LoginPage> {
         Get.offAll(ContactListPage(
           token: data['token'],
         ));
-        // Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(
-        //         builder: ((context) => ContactListPage(
-        //               token: data['token'],
-        //             ))));
+
         print(data['token']);
         print(data['data']['id']);
         print('Login successfully');
@@ -76,14 +71,6 @@ class _LoginPageState extends State<LoginPage> {
           _circularIndicator = false;
         });
         print('failed' + response.statusCode.toString());
-        // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        //   backgroundColor: Color(0xFF926AD3),
-        //   content: Text(
-        //     "Please check your Email & Password!",
-        //     style: TextStyle(fontSize: 14),
-        //   ),
-        //   duration: Duration(milliseconds: 1500),
-        // ));
         Get.snackbar(
           "Warning",
           "Please check your Email & Password!",
@@ -109,14 +96,6 @@ class _LoginPageState extends State<LoginPage> {
         duration: Duration(seconds: 4),
         isDismissible: true,
       );
-      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      //   backgroundColor: Color(0xFF926AD3),
-      //   content: Text(
-      //     '$e!',
-      //     style: TextStyle(fontSize: 14),
-      //   ),
-      //   duration: Duration(milliseconds: 2000),
-      // ));
       print(e.toString());
     }
   }

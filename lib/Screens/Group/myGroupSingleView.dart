@@ -388,9 +388,12 @@ class _MyGroupSingleViewState extends State<MyGroupSingleView> {
       ),
       content: Text("Are you sure?"),
       confirm: ElevatedButton(
-          onPressed: () {
-            _deleteGroup(deleteGroupUri);
-            Get.to(() => GroupListPage());
+          onPressed: () async {
+           await _deleteGroup(deleteGroupUri);
+           Future.delayed(Duration(milliseconds: 500), () {
+             Get.to(() => GroupListPage());
+           });
+
           },
           child: Text('DELETE')),
     );

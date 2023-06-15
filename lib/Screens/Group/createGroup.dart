@@ -4,6 +4,8 @@ import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'groupListPage.dart';
+
 class CreateGroup extends StatefulWidget {
   const CreateGroup({Key? key}) : super(key: key);
 
@@ -75,21 +77,14 @@ class _CreateGroupState extends State<CreateGroup> {
                 width: 10,
               ),
               ElevatedButton(
-                  onPressed: () async => {
+                  onPressed: () => {
                         // Validate returns true if the form is valid, or false otherwise.
                         if (_createGroupFormKey.currentState!.validate())
                           {
-                            // setState(() {
-                            //   _circularIndicator = true;
-                            // }),
-                            await _createGroup(groupNameController.text),
-                          //   setState(() {
-                          //     _circularIndicator = false;
-                          //   }),
-                          // Get.back(),
-                          //   Future.delayed(Duration(milliseconds: 100), () {
-                          //     Get.back(); // Close the sheet after the request is completed and the snackbar is closed
-                          //   }),
+                            setState(() {
+                              _circularIndicator = true;
+                            }),
+                            _createGroup(groupNameController.text),
                           }
                       },
                   child: (_circularIndicator)
@@ -115,6 +110,7 @@ class _CreateGroupState extends State<CreateGroup> {
       ),
     );
   }
+
   _createGroup(String name) async {
     final prefs = await SharedPreferences.getInstance();
     String uri = 'https://scm.womenindigital.net/api/group/create';
@@ -124,26 +120,27 @@ class _CreateGroupState extends State<CreateGroup> {
     };
     Map<String, String> body = {'name': name};
 
-    setState(() {
-      _circularIndicator = true;
-    });
-
     try {
-      Response response = await post(Uri.parse(uri), headers: headers, body: body);
+      Response response =
+          await post(Uri.parse(uri), headers: headers, body: body);
 
       print(response.statusCode);
 
       if (response.statusCode == 200) {
-        Get.snackbar('Congratulations', 'Your group has been created!',
-            colorText: Color(0xFF926AD3),
-            backgroundColor: Colors.white,
-            snackPosition: SnackPosition.BOTTOM);
+        setState(() {
+          _circularIndicator = false;
+        });
+        Get.back();
 
         // Close the sheet after the snackbar is shown
-          Future.delayed(Duration(milliseconds: 1500), () {
-            Get.back(); // Close the sheet after the request is completed and the snackbar is closed
-          });
-        Get.back();
+        Future.delayed(Duration(milliseconds: 1500), () {
+          Get.snackbar('Congratulations', 'Your group has been created!',
+              colorText: Color(0xFF926AD3),
+              backgroundColor: Colors.white,
+              snackPosition: SnackPosition.BOTTOM);
+           // Close the sheet after the request is completed and the snackbar is closed
+        });
+        //Get.back();
       } else if (response.statusCode == 404) {
         Get.snackbar('Error', 'Group already created. Try with another Name!',
             colorText: Color(0xFF926AD3),
