@@ -22,6 +22,7 @@ import '../../Model/contactGallery.dart';
 import '../../Widget/addPhotoBottomSheet.dart';
 import '../../Widget/galleryBottomSheet.dart';
 import '../../Widget/multipleImageSelector.dart';
+import '../../Widget/networkImageLoader.dart';
 import '../Auth/loginPage.dart';
 import '../User/userProfilePage.dart';
 import 'dart:async';
@@ -124,23 +125,25 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   height: (width * (870 / 1080)) + 10,
                   width: width,
                   color: Color(0xFF926AD3),
-                  child: Image.network(
-                    image + photo,
-                    fit: BoxFit.fitHeight,
-                    loadingBuilder: (BuildContext context, Widget child,
-                        ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, url, error) => Icon(Icons.error),
-                  ),
+                  child: NetworkImageLoader(imageUrl: image + photo,),
+
+                  // Image.network(
+                  //   image + photo,
+                  //   fit: BoxFit.fitHeight,
+                  //   loadingBuilder: (BuildContext context, Widget child,
+                  //       ImageChunkEvent? loadingProgress) {
+                  //     if (loadingProgress == null) return child;
+                  //     return Center(
+                  //       child: CircularProgressIndicator(
+                  //         value: loadingProgress.expectedTotalBytes != null
+                  //             ? loadingProgress.cumulativeBytesLoaded /
+                  //                 loadingProgress.expectedTotalBytes!
+                  //             : null,
+                  //       ),
+                  //     );
+                  //   },
+                  //   errorBuilder: (context, url, error) => Icon(Icons.error),
+                  // ),
                 ),
               ),
             ),
@@ -759,14 +762,13 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   print("My account menu is selected.");
                 }
                 Get.to(() => UserProfilePage(
-                      user: ContactListPage.user[0],
                       isChanged: false,
                     ));
               } else if (value == 1) {
                 if (kDebugMode) {
                   print("Settings menu is selected.");
                 }
-                Get.to(SettingPage());
+                Get.to(SettingPage(isShow: true, parent: '',));
               } else if (value == 2) {
                 logout();
                 if (kDebugMode) {
@@ -924,7 +926,6 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                   print("My account menu is selected.");
                 }
                 Get.to(() => UserProfilePage(
-                      user: ContactListPage.user[0],
                       isChanged: false,
                     ));
                 // Navigator.push(
@@ -938,7 +939,7 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                 if (kDebugMode) {
                   print("Settings menu is selected.");
                 }
-                Get.to(SettingPage());
+                Get.to(SettingPage(isShow: true, parent: '',));
                 // Navigator.push(context,
                 //     MaterialPageRoute(builder: ((context) => SettingPage())));
               } else if (value == 2) {
@@ -1133,22 +1134,6 @@ class _SingleContactDetailsPageState extends State<SingleContactDetailsPage> {
                 ),
                 backgroundColor: Colors.transparent,
               );
-              // _galleryBottomSheet();
-              // Gallery();
-              // if (widget.contact.phone_no?.isEmpty ?? true) {
-              //   setState(() {
-              //     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              //       backgroundColor: Color(0xFF926AD3),
-              //       content: Text(
-              //         "Saved photo gallery is empty!",
-              //         style: TextStyle(fontSize: 14),
-              //       ),
-              //       duration: Duration(milliseconds: 1000),
-              //     ));
-              //   });
-              // } else {
-              //   Gallery();
-              // }
             },
             child: const Icon(
               Icons.image,

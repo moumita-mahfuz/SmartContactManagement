@@ -104,7 +104,7 @@ class _ExternalGroupMemberListState extends State<ExternalGroupMemberList> {
                               final item = snapshot.data![index];
                               return ListTile(
                                 title: Text(
-                                  item.name.toString(),
+                                  item.name.toString() +' ',
                                   style: TextStyle(
                                     color: Colors.white, // fontSize: 20
                                   ),

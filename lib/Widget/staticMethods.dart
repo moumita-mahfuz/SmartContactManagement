@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 class StaticMethods {
   static String getMonth(String monthNo) {
     String month = '';
@@ -39,6 +40,12 @@ class StaticMethods {
       imageBytes.addAll(bytes);
     }
     return imageBytes;
+  }
+
+  static snackBar(String title, message) {
+    return Get.snackbar(title, message, colorText: Color(0xFF926AD3),
+        backgroundColor: Colors.white,
+        snackPosition: SnackPosition.BOTTOM );
   }
 }
 // class StaticMethods extends StatelessWidget {

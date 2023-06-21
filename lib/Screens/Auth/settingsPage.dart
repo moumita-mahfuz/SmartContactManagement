@@ -1,11 +1,15 @@
+import 'package:community_app/Screens/Auth/loginPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import '../../Model/User.dart';
 import '../User/userProfilePage.dart';
 
 class SettingPage extends StatefulWidget {
-  SettingPage({Key? key}) : super(key: key);
+  bool isShow;
+  String parent;
+  SettingPage({Key? key, required this.isShow, required this.parent}) : super(key: key);
 
   @override
   State<SettingPage> createState() => _SettingPageState();
@@ -15,7 +19,7 @@ class _SettingPageState extends State<SettingPage> {
   TextEditingController oldPassController = TextEditingController();
   TextEditingController newPassController = TextEditingController();
   TextEditingController conNewPassController = TextEditingController();
-  bool _isShow = true;
+
   bool _obscureText = true;
   bool _passValidate = false;
   bool _oldPassValidate = false;
@@ -31,15 +35,25 @@ class _SettingPageState extends State<SettingPage> {
     final prefs = await SharedPreferences.getInstance();
     int? id = prefs.getInt('loginID');
     print(id);
-    ///api/profile/6/update_password
-    var uriData = 'https://scm.womenindigital.net/api/profile/$id/update_password';
+    var uriData = '';
+    Map<String, String> body = {};
+    if(widget.parent != '') {
+      uriData = 'https://scm.womenindigital.net/api/profile/forget_password/change';
+      body = {'email' : widget.parent,
+      'password' : newPass,
+      'confirmed_password' : newPass};
+    } else {
+      ///api/profile/6/update_password
+      uriData = 'https://scm.womenindigital.net/api/profile/$id/update_password';
+      body = {
+        'password': newPass,
+      };
+    }
     Map<String, String> headers = {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
     };
-    Map<String, String> body = {
-      'password': newPass,
-    };
+
     var req = http.MultipartRequest('Post', Uri.parse(uriData));
     req.headers.addAll(headers);
     req.fields.addAll(body);
@@ -47,18 +61,20 @@ class _SettingPageState extends State<SettingPage> {
 
     var response = await http.Response.fromStream(streamedResponse);
     //print(response.body.toString());
-    String rawData = response.body.toString().replaceAll("\"", ' ');
-    print ("RAW DATA " + rawData);
+
     if (streamedResponse.statusCode == 200) {
+      String rawData = response.body.toString().replaceAll("\"", ' ');
+      print ("RAW DATA " + rawData);
       prefs.setString('login-pass', newPass);
       setState(() {
         _circularIndicator = false;
       });
-      Navigator.pop(context);
-      // Navigator.pushReplacement(
-      //     context,
-      //     MaterialPageRoute(
-      //         builder: ((context) => UserProfilePage(user: user, isChanged: true,))));
+      if(widget.parent != '') {
+        Get.offAll(() => LoginPage());
+      }else {
+        Navigator.pop(context);
+      }
+
 
     } else {
       setState(() {
@@ -68,8 +84,6 @@ class _SettingPageState extends State<SettingPage> {
     }
 
   }
-
-
 
   void _toggle() {
     setState(() {
@@ -253,12 +267,12 @@ class _SettingPageState extends State<SettingPage> {
     print("OLD - NEW  " + " " + pass.toString() + " " + oldPass.toString());
     if (pass.toString() == oldPass.toString()) {
       return true;
-      print("on Create" + _isShow.toString());
+      print("on Create" + widget.isShow.toString());
     } else
       return false;
   }
 
-  Future<bool> getstatus(String oldPass) async {
+  Future<bool> getStatus(String oldPass) async {
     bool message = await _passwordMatch(oldPass);
     return (message); // will print one on console.
   }
@@ -269,7 +283,7 @@ class _SettingPageState extends State<SettingPage> {
         String oldPass = oldPassController.text;
         String newPass = newPassController.text;
         String conPass = conNewPassController.text;
-        if (_isShow) {
+        if (widget.isShow) {
           setState(() {
             (oldPass.isEmpty)
                 ? {
@@ -279,13 +293,13 @@ class _SettingPageState extends State<SettingPage> {
                 : _oldPassValidate = false;
           });
           if (oldPass.isNotEmpty) {
-            bool result = await getstatus(oldPass);
+            bool result = await getStatus(oldPass);
             //print(c);
             print("final Result " + result.toString());
             if (result == true) {
               setState(
                 () {
-                  _isShow = !_isShow;
+                  widget.isShow = !widget.isShow;
                 },
               );
             }
@@ -396,7 +410,7 @@ class _SettingPageState extends State<SettingPage> {
           ],
         )
             : Text(
-          _isShow ? 'Next' : 'Update',
+          widget.isShow ? 'Next' : 'Update',
           style:
           TextStyle(color: Color(0xFF926AD3), fontWeight: FontWeight.bold),
         ),
@@ -409,7 +423,7 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
-    print("on Create " + _isShow.toString());
+    print("on Create " + widget.isShow.toString());
     return Scaffold(
       body: Container(
         height: height,
@@ -436,7 +450,7 @@ class _SettingPageState extends State<SettingPage> {
                     //padding: EdgeInsets.only(left: 30, right: 30),
                     color: Colors.transparent,
                     child: Visibility(
-                      visible: _isShow,
+                      visible: widget.isShow,
                       // maintainSize: true, //NEW
                       // maintainAnimation: true, //NEW
                       // maintainState: true, //NEW

@@ -33,11 +33,11 @@ class _GroupListPageState extends State<GroupListPage> {
   TextEditingController groupNameController = TextEditingController();
   TextEditingController joinGroupNameController = TextEditingController();
   TextEditingController joinGroupOwnerEmailController = TextEditingController();
-  bool _circularIndicator = false;
-  bool _searchCircularIndicator = false;
-  bool _status = false;
-  final _createGroupFormKey = GlobalKey<FormState>();
-  final _joinGroupSearchFormKey = GlobalKey<FormState>();
+  // bool _circularIndicator = false;
+  // bool _searchCircularIndicator = false;
+  // bool _status = false;
+  // final _createGroupFormKey = GlobalKey<FormState>();
+  // final _joinGroupSearchFormKey = GlobalKey<FormState>();
   String myGroupUri = 'https://scm.womenindigital.net/api/my-group';
   String externalGroupUri = 'https://scm.womenindigital.net/api/external-group';
   String joinSearchUri = 'https://scm.womenindigital.net/api/search-for-join';
@@ -50,7 +50,6 @@ class _GroupListPageState extends State<GroupListPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    //getGroupList();
     _futureGroupList = fetchGroups(myGroupUri, "myGroupList");
     _exFutureGroupList = fetchGroups(externalGroupUri, "externalGroupList");
     _joinReqList = fetchGroups(joinReqListUri, "joinRequestList");
@@ -377,7 +376,6 @@ class _GroupListPageState extends State<GroupListPage> {
             }
             if (ContactListPage.user!.isNotEmpty ?? true) {
               Get.to(UserProfilePage(
-                user: ContactListPage.user[0],
                 isChanged: false,
               ));
             }
@@ -385,7 +383,8 @@ class _GroupListPageState extends State<GroupListPage> {
             if (kDebugMode) {
               print("Settings menu is selected.");
             }
-            Get.to(SettingPage());
+
+            Get.to(() => (SettingPage(isShow: true, parent: '',)));
           } else if (value == 2) {
             logout();
             if (kDebugMode) {
@@ -428,96 +427,13 @@ class _GroupListPageState extends State<GroupListPage> {
     return Get.bottomSheet(
       CreateGroup(),
     );
-    // return Get.defaultDialog(
-    //   title: "Create Group",
-    //   //middleText: "Hello world!",
-    //   backgroundColor: Colors.white,
-    //   titleStyle: TextStyle(color: Color(0xFF926AD3)),
-    //   // middleTextStyle: TextStyle(color: Colors.white),
-    //   confirm: ElevatedButton(
-    //       onPressed: () async => {
-    //             // Validate returns true if the form is valid, or false otherwise.
-    //             if (_createGroupFormKey.currentState!.validate()) {
-    //                 setState(() {
-    //                   _circularIndicator = true;
-    //                 }),
-    //                 await _createGroup(groupNameController.text),
-    //                 setState(() {
-    //                   _circularIndicator = false;
-    //                 }),
-    //                 Future.delayed(Duration(milliseconds: 100), () {
-    //                   Get.back(); // Close the sheet after the request is completed and the snackbar is closed
-    //                   Get.snackbar(
-    //                       'Congratulations', 'Your group has been created!',
-    //                       colorText: Color(0xFF926AD3),
-    //                       backgroundColor: Colors.white,
-    //                       snackPosition: SnackPosition.BOTTOM);
-    //                 }),
-    //               }
-    //           },
-    //       child: (_circularIndicator)
-    //           ? Row(
-    //               children: [
-    //                 SizedBox(
-    //                   child: CircularProgressIndicator(
-    //                     strokeWidth: 3,
-    //                     backgroundColor: Colors.white,
-    //                   ),
-    //                   height: 12,
-    //                   width: 12,
-    //                 ),
-    //                 Text(" Creating "),
-    //               ],
-    //             )
-    //           : Text("  Create  ")),
-    //   cancel: ElevatedButton(
-    //     onPressed: () => {
-    //       setState(() {
-    //         _circularIndicator = false;
-    //       }),
-    //       Get.back(),
-    //     },
-    //     child: Text(
-    //       "  Cancel  ",
-    //       style: TextStyle(color: Color(0xFF926AD3)),
-    //     ),
-    //     style: ElevatedButton.styleFrom(
-    //         backgroundColor: Colors.white,
-    //         side: BorderSide(color: Color(0xFF926AD3))
-    //         // Background color
-    //         ),
-    //   ),
-    //   content: Center(
-    //     child: Padding(
-    //       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-    //       child: Form(
-    //         key: _createGroupFormKey,
-    //         child: TextFormField(
-    //           controller: groupNameController,
-    //           textCapitalization: TextCapitalization.words,
-    //           decoration: InputDecoration(
-    //             border: OutlineInputBorder(),
-    //             hintText: 'Group Name',
-    //           ),
-    //           // The validator receives the text that the user has entered.
-    //           validator: (value) {
-    //             if (value == null || value.isEmpty) {
-    //               return 'Group Name is required!';
-    //             }
-    //             return null;
-    //           },
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
 
   _joinGroupBottomSheet() {
     return Get.bottomSheet(
       isScrollControlled: true,
       JoinGroupDialogContent(),
-      //isDismissible: false,
+      isDismissible: false,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -565,35 +481,6 @@ class _GroupListPageState extends State<GroupListPage> {
           .toList();
     } else {
       throw Exception('Failed to fetch groups');
-    }
-  }
-
-  ///https://scm.womenindigital.net/api/external-group
-
-  _createGroup(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-    String uri = 'https://scm.womenindigital.net/api/group/create';
-    Map<String, String> headers = {
-      "Accept": 'application/json',
-      'Authorization': 'Bearer ${prefs.getString('token')}'
-    };
-    Map<String, String> body = {'name': name};
-    Response response =
-        await post(Uri.parse(uri), headers: headers, body: body);
-    //var request = http.post(Uri.parse(uri), headers: headers, body: body);
-    print(response.statusCode);
-    if (response.statusCode == 200) {
-      setState(() {
-        _circularIndicator = false;
-      });
-    } else {
-      setState(() {
-        _circularIndicator = false;
-      });
-      Get.snackbar('Error', 'Group not created. Try Again!',
-          colorText: Color(0xFF926AD3),
-          backgroundColor: Colors.white,
-          snackPosition: SnackPosition.BOTTOM);
     }
   }
 

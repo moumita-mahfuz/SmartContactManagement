@@ -62,27 +62,22 @@ class _SignUpPageState extends State<SignUpPage> {
         var data = jsonDecode(response.body.toString());
         print(data['token']);
         print('Register successfully');
-        // Navigator.pushReplacement(
-        //     context, MaterialPageRoute(builder: ((context) => LoginPage())));
         Get.offAll(LoginPage());
-        //set the shared preference instance
-        // final prefs = await SharedPreferences.getInstance();
-        // prefs.setBool('isLoggedIn', true);
-        // prefs.setString('token', data['token']);
-        //prefs.setInt('loginID', data['token']);
+        Get.snackbar(
+          "Success",
+          "Please check your email for email verification!",
+          colorText: Colors.white,
+          //icon: Icon(Icons.person, color: Colors.white),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Color(0xFF926AD3),
+          duration: Duration(seconds: 4),
+          isDismissible: true,
+        );
 
       } else if(response.statusCode == 422 || response.statusCode == 500) {
         setState(() {
           _circularIndicator = false;
         });
-        // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        //   backgroundColor: Color(0xFF926AD3),
-        //   content: Text(
-        //     "This mail is already taken!",
-        //     style: TextStyle(fontSize: 14),
-        //   ),
-        //   duration: Duration(milliseconds: 1500),
-        // ));
         Get.snackbar(
           "Warning",
           "This mail is already taken!!",
@@ -146,6 +141,7 @@ class _SignUpPageState extends State<SignUpPage> {
       //margin: const EdgeInsets.symmetric(vertical: 10),
       child: TextField(
           keyboardType: inputType,
+          textCapitalization: (controller == nameController)? TextCapitalization.words: TextCapitalization.none,
           textInputAction: TextInputAction.next,
           controller: controller,
           obscureText: isPassword,

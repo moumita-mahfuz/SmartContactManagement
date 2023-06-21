@@ -4,10 +4,13 @@ import 'package:community_app/Screens/User/updateUserProfilePage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:community_app/Screens/contactListPage.dart';
 import 'package:community_app/Screens/Contact/updateSingleContactDetailsPage.dart';
+import 'package:community_app/Widget/networkImageLoader.dart';
 import 'package:community_app/Widget/staticMethods.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -18,9 +21,8 @@ import '../Auth/loginPage.dart';
 import '../Auth/settingsPage.dart';
 
 class UserProfilePage extends StatefulWidget {
-  User user;
   final bool isChanged;
-  UserProfilePage({Key? key, required this.user, required this.isChanged}) : super(key: key);
+  UserProfilePage({Key? key, required this.isChanged}) : super(key: key);
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -38,6 +40,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late String socialLinks = "";
   late String photo = "";
   late String note = "";
+  User userProfile = User();
   // var img = Image.network(src);
   // var placeholder = AssetImage(assetName)
   ///storage/profile_photo
@@ -47,52 +50,100 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    valueInitialization();
+    getUserDetails();
+    //valueInitialization();
   }
 
-  void valueInitialization() {
+  Future<void> getUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    String url =
+        'https://scm.womenindigital.net/api/user/${prefs.getInt('loginID')}/show';
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        "Accept": 'application/json',
+        'Authorization': 'Bearer ${prefs.getString('token')}'
+      });
+      var data = jsonDecode(response.body.toString());
+      // print("${response.statusCode} $data");
+      if (response.statusCode == 200) {
+        for (Map i in data) {
+          // print("name " + i['name']);
+          setState(() {
+            userProfile = User(
+              id: i['id'],
+              name: i['name'],
+              photo: i['photo'],
+              designation: i['designation'],
+              organization: i['organization'],
+              phone_no: i['phone_no'],
+              email: i['email'],
+              date_of_birth: i['date_of_birth'],
+              gender: i['gender'],
+              address: i['address'],
+              social_media: i['social_media'],
+              note: i['note'],
+            );
+            valueInitialization(userProfile);
+          });
+        }
+      } else {}
+    } catch (e) {
+      // TODO
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Color(0xFF926AD3),
+        content: Text(
+          '$e!',
+          style: TextStyle(fontSize: 14),
+        ),
+        duration: Duration(milliseconds: 2000),
+      ));
+      print(e.toString());
+    }
+  }
+
+  void valueInitialization(User user) {
     //print('$widget.user.photo  $widget.user.email');
-    if (widget.user.name?.isEmpty ?? true) {
+    if (user.name?.isEmpty ?? true) {
       name = "";
     } else {
-      name = widget.user.name.toString();
+      name = user.name.toString();
     }
 
-    if (widget.user.phone_no?.isEmpty ?? true) {
+    if (user.phone_no?.isEmpty ?? true) {
       phone_no = " ";
     } else {
-      phone_no = widget.user.phone_no.toString().replaceAll(RegExp('[^0-9+]'), '');
+      phone_no = user.phone_no.toString().replaceAll(RegExp('[^0-9+]'), '');
     }
-    if (widget.user.photo?.isEmpty ?? true) {
+    if (user.photo?.isEmpty ?? true) {
       photo = '202302160552-profile-white.png';
     } else {
-      photo = widget.user.photo.toString();
+      photo = user.photo.toString();
     }
 
-    if (widget.user.email?.isEmpty ?? true) {
+    if (user.email?.isEmpty ?? true) {
       email = " ";
     } else {
-      email = widget.user.email.toString();
+      email = user.email.toString();
     }
 
-    if (widget.user.designation?.isEmpty ?? true) {
+    if (user.designation?.isEmpty ?? true) {
       designation = " ";
     } else {
-      designation = widget.user.designation.toString();
+      designation = user.designation.toString();
     }
 
-    if (widget.user.organization?.isEmpty ?? true) {
+    if (user.organization?.isEmpty ?? true) {
       organization = " ";
     } else {
-      organization = widget.user.organization.toString();
+      organization = user.organization.toString();
     }
 
-    if (widget.user.date_of_birth?.isEmpty ?? true) {
+    if (user.date_of_birth?.isEmpty ?? true) {
       dob = " ";
     } else {
       //final splitted = string.split(' ');
-      final temp = widget.user.date_of_birth.toString().split('-');
+      final temp = user.date_of_birth.toString().split('-');
       print(temp);
       final year = temp[0];
       final month = StaticMethods.getMonth(temp[1]);
@@ -100,28 +151,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
       dob = '$date $month';
     }
 
-    if (widget.user.gender?.isEmpty ?? true) {
+    if (user.gender?.isEmpty ?? true) {
       gender = " ";
     } else {
-      gender = widget.user.gender.toString();
+      gender = user.gender.toString();
     }
 
-    if (widget.user.address?.isEmpty ?? true) {
+    if (user.address?.isEmpty ?? true) {
       address = " ";
     } else {
-      address = widget.user.address.toString();
+      address = user.address.toString();
     }
 
-    if (widget.user.social_media?.isEmpty ?? true) {
+    if (user.social_media?.isEmpty ?? true) {
       socialLinks = " ";
     } else {
-      socialLinks = widget.user.social_media.toString();
+      socialLinks = user.social_media.toString();
     }
 
-    if (widget.user.note?.isEmpty ?? true) {
+    if (user.note?.isEmpty ?? true) {
       note = " ";
     } else {
-      note = widget.user.note.toString();
+      note = user.note.toString();
     }
 
     print(
@@ -175,7 +226,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 context,
                 MaterialPageRoute(
                     builder: ((context) => UpdateUserProfilePage(
-                      user: widget.user,
+                      user: userProfile,
                     ))));
           },
           child: Container(
@@ -234,10 +285,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             },
             onSelected: (value) async {
               if (value == 0) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: ((context) => SettingPage())));
+                Get.to(() => SettingPage(isShow: true, parent: '',));
                 if (kDebugMode) {
                   print("Settings menu is selected.");
                 }
@@ -292,7 +340,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     TextEditingController controller = TextEditingController();
     if (value != " ") {
       controller.text = value;
-      print("VALUE CONTROLLER  " + value + " " + controller.text.toString());
+      //print("VALUE CONTROLLER  " + value + " " + controller.text.toString());
     }
     //TextEditingController controllerTitle,
     return TextField(
@@ -370,40 +418,38 @@ class _UserProfilePageState extends State<UserProfilePage> {
 //User Image
             //Contact Image
             Positioned(
-                top: 0,
-                right: 0,
-                child: ClipPath(
+              top: 0,
+              right: 0,
+              child: ClipPath(
                   clipper: OvalBottomBorderClipper(),
                   child: Container(
-                    height: (width * (870 / 1080)) + 10,
+                    height: (width * (870 / 1080)) ,
                     width: width,
                     decoration: const BoxDecoration(
                       color: Color(0xFF926AD3),
                     ),
 
-                    child: Image.network(
-                      image + photo.toString(),
-                      fit: BoxFit.fitHeight,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, url, error) => Icon(Icons.error,color: Colors.white,),
-                    ),
-                    //color: Colors.red,
-                    // child: Image.network(
-                    //   image + widget.user.photo.toString(),
+                    child: NetworkImageLoader(imageUrl: image + photo.toString(),),
+
+                    // Image.network(
+                    //   image + photo.toString(),
                     //   fit: BoxFit.fitHeight,
+                    //   loadingBuilder: (context, child, loadingProgress) {
+                    //     if (loadingProgress == null) return child;
+                    //     return Center(
+                    //       child: CircularProgressIndicator(
+                    //         value: loadingProgress.expectedTotalBytes != null
+                    //             ? loadingProgress.cumulativeBytesLoaded /
+                    //             loadingProgress.expectedTotalBytes!
+                    //             : null,
+                    //       ),
+                    //     );
+                    //   },
+                    //   errorBuilder: (context, url, error) => Icon(Icons.error,color: Colors.white,),
                     // ),
+
                   )),
-                ),
+            ),
             //Image shadow
             Positioned(
                 top: 0,
@@ -433,6 +479,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
     );
   }
+
 }
 // Container(
 //   //padding: EdgeInsets.symmetric(horizontal: 20),

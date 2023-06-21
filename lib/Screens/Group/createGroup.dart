@@ -137,7 +137,9 @@ class _CreateGroupState extends State<CreateGroup> {
           Get.snackbar('Congratulations', 'Your group has been created!',
               colorText: Color(0xFF926AD3),
               backgroundColor: Colors.white,
+              duration: Duration(seconds: 6),
               snackPosition: SnackPosition.BOTTOM);
+
            // Close the sheet after the request is completed and the snackbar is closed
         });
         //Get.back();

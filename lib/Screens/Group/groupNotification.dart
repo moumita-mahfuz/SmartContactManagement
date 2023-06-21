@@ -90,7 +90,6 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
               ),
             ),
           ),
-          //buildPageIndicator(),
         ],
       ),
     );
@@ -117,17 +116,15 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                     color: Colors.white,
                   ),
                 );
-              }
-              else if (snapshot.hasData && snapshot.data!.isEmpty) {
+              } else if (snapshot.hasData && snapshot.data!.isEmpty) {
                 return const Center(
                   child: Text(
-                      "No Join Invitation Found!",
+                    "No Join Invitation Found!",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white),
                   ),
                 );
-              }
-              else if (snapshot.hasError) {
+              } else if (snapshot.hasError) {
                 return Center(
                   child: Text(
                     "No Join Invitation Found!",
@@ -137,8 +134,7 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                     ),
                   ),
                 );
-              }
-              else if (snapshot.hasData) {
+              } else if (snapshot.hasData) {
                 return ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
@@ -146,7 +142,6 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                     final isSelected = index == _selectedItemIndex;
                     final isRejected = index == _rejectedItemIndex;
                     return Card(
-                      //color: isSelected ? Color(0xFF926AD3) : Colors.white,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -158,11 +153,7 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                                 Text(
                                   'Group: ' + item.groupName.toString(),
                                   style: TextStyle(
-                                      color: Color(0xFF926AD3),
-                                      // color: isSelected
-                                      //     ? Colors.white
-                                      //     : Color(0xFF926AD3),
-                                      fontSize: 14),
+                                      color: Color(0xFF926AD3), fontSize: 14),
                                 ),
                                 Text(
                                   'Owner: \n' + item.ownerEmail.toString(),
@@ -173,57 +164,117 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                                       //     : Color(0xFF926AD3),
                                       fontSize: 14),
                                 ),
-                              ],
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () => {
-                                    _acceptInvitation(
-                                        'invite', item.groupId.toString()),
-                                    _refreshLists(),
-                                    setState(() {
-                                      _selectedItemIndex = index;
-                                    }),
-                                  },
-                                  icon: isSelected
-                                      ? CircleAvatar(
-                                    backgroundColor: Color(0xFF926AD3),
-                                    child: Icon(
-                                      Icons.check,
-                                      color: Colors.white,
+                                Row(
+                                  children: [
+                                    ElevatedButton(
+                                        onPressed: () => {
+                                              _acceptInvitation('invite',
+                                                  item.groupId.toString()),
+                                              _refreshLists(),
+                                              setState(() {
+                                                _selectedItemIndex = index;
+                                              }),
+                                            },
+                                        child: isSelected
+                                            ? Text(
+                                                " Accept ",
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              )
+                                            : Text(
+                                                " Accept ",
+                                                style: TextStyle(
+                                                    color: Color(0xFF926AD3)),
+                                              ),
+                                        style: isSelected
+                                            ? ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Color(0xFF926AD3),
+                                              )
+                                            : ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white,
+                                                side: BorderSide(
+                                                    color: Color(0xFF926AD3)),
+                                              )),
+                                    SizedBox(
+                                      width: 10,
                                     ),
-                                  )
-                                      : Icon(
-                                    Icons.check,
-                                    color: Color(0xFF926AD3),
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => {
-                                    _rejectInvitation(
-                                        'invite', item.id.toString()),
-                                    _refreshLists(),
-                                    setState(() {
-                                      _rejectedItemIndex = index;
-                                    }),
-                                  },
-                                  icon: isRejected
-                                      ? CircleAvatar(
-                                    backgroundColor: Colors.red,
-                                    //backgroundColor: Color(0xFF926AD3),
-                                    child: Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                      : Icon(
-                                    Icons.close,
-                                    color: Color(0xFF926AD3),
-                                  ),
+                                    // IconButton(
+                                    //   onPressed: () => {
+                                    //     _acceptInvitation(
+                                    //         'invite', item.groupId.toString()),
+                                    //     _refreshLists(),
+                                    //     setState(() {
+                                    //       _selectedItemIndex = index;
+                                    //     }),
+                                    //   },
+                                    //   icon: isSelected
+                                    //       ? CircleAvatar(
+                                    //           backgroundColor:
+                                    //               Color(0xFF926AD3),
+                                    //           child: Icon(
+                                    //             Icons.check,
+                                    //             color: Colors.white,
+                                    //           ),
+                                    //         )
+                                    //       : Icon(
+                                    //           Icons.check,
+                                    //           color: Color(0xFF926AD3),
+                                    //         ),
+                                    // ),
+                                    ElevatedButton(
+                                        onPressed: () => {
+                                              _rejectInvitation(
+                                                  'invite', item.id.toString()),
+                                              _refreshLists(),
+                                              setState(() {
+                                                _rejectedItemIndex = index;
+                                              }),
+                                            },
+                                        child: isSelected
+                                            ? Text(
+                                                " Reject ",
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              )
+                                            : Text(
+                                                " Reject ",
+                                                style: TextStyle(
+                                                    color: Color(0xFF926AD3)),
+                                              ),
+                                        style: isSelected
+                                            ? ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Color(0xFF926AD3),
+                                              )
+                                            : ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white,
+                                                side: BorderSide(
+                                                    color: Color(0xFF926AD3)),
+                                              )),
+                                    // IconButton(
+                                    //   onPressed: () => {
+                                    //     _rejectInvitation(
+                                    //         'invite', item.id.toString()),
+                                    //     _refreshLists(),
+                                    //     setState(() {
+                                    //       _rejectedItemIndex = index;
+                                    //     }),
+                                    //   },
+                                    //   icon: isRejected
+                                    //       ? CircleAvatar(
+                                    //           backgroundColor: Colors.red,
+                                    //           child: Icon(
+                                    //             Icons.close,
+                                    //             color: Colors.white,
+                                    //           ),
+                                    //         )
+                                    //       : Icon(
+                                    //           Icons.close,
+                                    //           color: Color(0xFF926AD3),
+                                    //         ),
+                                    // ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -233,8 +284,7 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                     );
                   },
                 );
-              }
-              else {
+              } else {
                 return const Center(
                   child: Text(
                     "Something went wrong",
@@ -242,7 +292,6 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                   ),
                 );
               }
-
             },
           ),
         ),
@@ -265,69 +314,61 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
             future: _joinReqList,
             builder:
                 (BuildContext context, AsyncSnapshot<List<Group>> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    );
-                  }
-                  else if (snapshot.hasData && snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        "No Join Request Found!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
-                  else if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        "No Join Request Found!",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  }
-                  else if (snapshot.hasData) {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final item = snapshot.data![index];
-                        final isSelected = index == _selectedItemIndex;
-                        final isRejected = index == _rejectedItemIndex;
-                        return Card(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Requested by:\n' +
-                                          item.userEmail.toString() +
-                                          '\n',
-                                      style: TextStyle(
-                                          color: Color(0xFF926AD3), fontSize: 14),
-                                    ),
-                                    Text(
-                                      'Group: ' + item.groupName.toString(),
-                                      style: TextStyle(
-                                          color: Color(0xFF926AD3), fontSize: 14),
-                                    ),
-                                  ],
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                  ),
+                );
+              } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "No Join Request Found!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    "No Join Request Found!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              } else if (snapshot.hasData) {
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final item = snapshot.data![index];
+                    final isSelected = index == _selectedItemIndex;
+                    final isRejected = index == _rejectedItemIndex;
+                    return Card(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Requested by:\n' +
+                                      item.userEmail.toString() +
+                                      '\n',
+                                  style: TextStyle(
+                                      color: Color(0xFF926AD3), fontSize: 14),
                                 ),
-                              ),
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Row(
+                                Text(
+                                  'Group: ' + item.groupName.toString(),
+                                  style: TextStyle(
+                                      color: Color(0xFF926AD3), fontSize: 14),
+                                ),
+                                Row(
                                   children: [
-                                    IconButton(
+                                    ElevatedButton(
                                       onPressed: () => {
                                         _acceptInvitation(
                                             'join', item.id.toString()),
@@ -336,60 +377,121 @@ class _NotificationDialogContentState extends State<NotificationDialogContent> {
                                         }),
                                         _refreshLists(),
                                       },
-                                      icon: isSelected
-                                          ? CircleAvatar(
-                                        backgroundColor: Color(0xFF926AD3),
-                                        child: Icon(
-                                          Icons.check,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                          : Icon(
-                                        Icons.check,
-                                        color: Color(0xFF926AD3),
+                                      child: isSelected
+                                          ? Text(
+                                              " Accept ",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            )
+                                          : Text(
+                                              " Accept ",
+                                              style: TextStyle(
+                                                  color: Color(0xFF926AD3)),
+                                            ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        side: BorderSide(
+                                            color: Color(0xFF926AD3)),
                                       ),
                                     ),
-                                    IconButton(
-                                      onPressed: () => {
-                                        _rejectInvitation(
-                                            'join', item.id.toString()),
-                                        setState(() {
-                                          _rejectedItemIndex = index;
-                                        }),
-                                        _refreshLists(),
-                                      },
-                                      icon: isRejected
-                                          ? CircleAvatar(
-                                        backgroundColor: Colors.red,
-                                        //backgroundColor: Color(0xFF926AD3),
-                                        child: Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                          : Icon(
-                                        Icons.close,
-                                        color: Color(0xFF926AD3),
-                                      ),
+                                    SizedBox(
+                                      width: 10,
                                     ),
+                                    ElevatedButton(
+                                        onPressed: () => {
+                                              _rejectInvitation(
+                                                  'join', item.id.toString()),
+                                              setState(() {
+                                                _rejectedItemIndex = index;
+                                              }),
+                                              _refreshLists(),
+                                            },
+                                        child: isSelected
+                                            ? Text(
+                                                " Reject ",
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              )
+                                            : Text(
+                                                " Reject ",
+                                                style: TextStyle(
+                                                    color: Color(0xFF926AD3)),
+                                              ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          side: BorderSide(
+                                              color: Color(0xFF926AD3)),
+                                        ),),
                                   ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        );
-                      },
-                    );
-                  }
-                  else {
-                    return const Center(
-                      child: Text(
-                        "Something went wrong",
-                        style: TextStyle(color: Colors.white),
+                          // Align(
+                          //   alignment: Alignment.bottomRight,
+                          //   child: Row(
+                          //     children: [
+                          //       IconButton(
+                          //         onPressed: () => {
+                          //           _acceptInvitation(
+                          //               'join', item.id.toString()),
+                          //           setState(() {
+                          //             _selectedItemIndex = index;
+                          //           }),
+                          //           _refreshLists(),
+                          //         },
+                          //         icon: isSelected
+                          //             ? CircleAvatar(
+                          //                 backgroundColor: Color(0xFF926AD3),
+                          //                 child: Icon(
+                          //                   Icons.check,
+                          //                   color: Colors.white,
+                          //                 ),
+                          //               )
+                          //             : Icon(
+                          //                 Icons.check,
+                          //                 color: Color(0xFF926AD3),
+                          //               ),
+                          //       ),
+                          //       IconButton(
+                          //         onPressed: () => {
+                          //           _rejectInvitation(
+                          //               'join', item.id.toString()),
+                          //           setState(() {
+                          //             _rejectedItemIndex = index;
+                          //           }),
+                          //           _refreshLists(),
+                          //         },
+                          //         icon: isRejected
+                          //             ? CircleAvatar(
+                          //                 backgroundColor: Colors.red,
+                          //                 //backgroundColor: Color(0xFF926AD3),
+                          //                 child: Icon(
+                          //                   Icons.close,
+                          //                   color: Colors.white,
+                          //                 ),
+                          //               )
+                          //             : Icon(
+                          //                 Icons.close,
+                          //                 color: Color(0xFF926AD3),
+                          //               ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                        ],
                       ),
                     );
-                  }
-
+                  },
+                );
+              } else {
+                return const Center(
+                  child: Text(
+                    "Something went wrong",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }
             },
           ),
         ),

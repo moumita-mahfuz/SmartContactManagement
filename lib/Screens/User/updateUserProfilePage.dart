@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:community_app/Screens/User/userProfilePage.dart';
+
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import 'package:http/http.dart' as http;
 import 'package:community_app/Model/contact.dart';
 import 'package:flutter/foundation.dart';
@@ -167,7 +169,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
     print(id);
     ///api/profile/3/update-profile
     var uriData = 'https://scm.womenindigital.net/api/profile/$id/update-profile';
-   Map<String, String> headers = {
+    Map<String, String> headers = {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
     };
@@ -189,15 +191,13 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
           "$phone_no $email $date_of_birth $gender $address $social_media  $note"
           " ${prefs.getInt('loginID')}");
     }
-    // name, designation, organization, connected_id, phone_no, email,
-    // date_of_birth, gender, address, social_media, note, photo
-    //http://scm.womenindigital.net/api/connection/19/update
     var req = http.MultipartRequest('Post', Uri.parse(uriData));
     print("IMAGE $_croppedFile " );
     if(_croppedFile != null){
       print("IF");
       req.headers.addAll(headers);
       req.fields.addAll(body);
+      print(_croppedFile!.path);
       req.files
           .add(await http.MultipartFile.fromPath('photo', _croppedFile!.path));
     }
@@ -206,52 +206,15 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       req.headers.addAll(headers);
       req.fields.addAll(body);
     }
-
-    // var request = http.MultipartRequest('POST', Uri.parse(uriData));
-    // request.headers.addAll(headers);
-    // request.fields.addAll(body);
-    // if (kDebugMode) {
-    //   print("IMAGE $_image " );
-    // }
-    //
-    // if (_image != null ) {
-    //   //File f = await getImageFileFromAssets('images/profile.png');
-    //   request.files
-    //       .add(await http.MultipartFile.fromPath('photo', _image.path));
-    // } else {
-    //   // File f = await getImageFileFromAssets('images/profile-white.png');
-    //   request.headers.addAll(headers);
-    //   request.fields.addAll(body);
-    //   //request.files.add(await http.MultipartFile.fromPath('photo', f.path));
-    // }
     var streamedResponse = await req.send();
-    //print(streamedResponse.statusCode);
-    //print("STREAM "+streamedResponse.stream.toString());
     var response = await http.Response.fromStream(streamedResponse);
-    //print(response.body.toString());
-    String rawData = response.body.toString().replaceAll("\"", ' ');
-    print ("RAW DATA " + rawData);
+    print(response.body.toString());
+    var data = jsonDecode(response.body.toString());
     if (streamedResponse.statusCode == 200) {
-      //Navigator.pop(context);
-      print("PHOTO " + _getPhotoID(rawData));
-      User user = User (
-        id: widget.user.id,
-        name: name,
-        photo: _getPhotoID(rawData),
-        designation : designation, 
-        organization : organization,
-        phone_no : phone_no,
-        email : email,
-        date_of_birth : date_of_birth,
-        gender : gender,
-        address : address,
-        social_media : social_media,
-        note : note,
-      );
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: ((context) => UserProfilePage(user: user, isChanged: true,))));
+              builder: ((context) => UserProfilePage(isChanged: true,))));
 
     } else {
       print('failed ${response.statusCode}');
@@ -259,43 +222,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
 
   }
 
-  Future<void> getUserDetailsApi() async {
-    final prefs = await SharedPreferences.getInstance();
 
-    ///api/user/10/show
-    String url =
-        'https://scm.womenindigital.net/api/user/${prefs.getInt('loginID')}/show';
-
-    final response = await http.get(Uri.parse(url), headers: {
-      "Accept": 'application/json',
-      'Authorization': 'Bearer ${prefs.getString('token')}'
-    });
-    var data = jsonDecode(response.body.toString());
-    print("${response.statusCode} $data");
-    if (response.statusCode == 200) {
-      for (Map i in data) {
-        print("name " + i['name']);
-        //bool status = isPresent(i['name']);
-        // if(status== false) {
-        //   //tempList.add(Contact.fromJson(i));
-        //   ContactListPage.contactList.add(Contact.fromJson(i));
-        // }
-        person.add(User.fromJson(i));
-        // for (User x in person) {
-        //   print(x.name);
-        //
-        // }
-      }
-      print (person.length);
-      for(int i =0 ; i< person.length ; i++){
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: ((context) => UserProfilePage(user: person[i], isChanged: true,))));
-      }
-
-    }
-  }
 
 
   String _getPhotoID(String rawDetails) {
@@ -343,6 +270,7 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       ],
     );
   }
+
   Future<void> _showDialog() async {
     return showDialog<void>(
       context: context,
@@ -380,39 +308,19 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
           nameController.text.isEmpty ? _validate = true : _validate = false;
           showSpinner = true;
         });
-        if (showSpinner == true) {
-          showModalBottomSheet<void>(
-            context: context,
-            builder: (BuildContext context) {
-              return Container(
-                height: 80,
-                color: Color(0xFF926AD3),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      SizedBox(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          backgroundColor: Colors.white,
-                        ),
-                        height: 18,
-                        width: 18,
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        "Please wait...",
-                        style: TextStyle(fontSize: 18,color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
+        if (showSpinner == true && nameController.text.isNotEmpty && _validate == false) {
+          bottomSheet ();
+          submitForm(
+              nameController.text.toString(),
+              designationController.text.toString(),
+              organizationController.text.toString(),
+              updatedNo,
+              emailController.text.toString(),
+              dobController.text.toString(),
+              genderController.text.toString(),
+              addressController.text.toString(),
+              socialMediaController.text.toString(),
+              noteController.text.toString());
           // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           //   backgroundColor: Color(0xFF926AD3),
           //   content: Row(
@@ -438,21 +346,6 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
           // ));
         }
 
-        if (nameController.text.isNotEmpty && _validate == false) {
-
-          submitForm(
-              nameController.text.toString(),
-              designationController.text.toString(),
-              organizationController.text.toString(),
-              updatedNo,
-              emailController.text.toString(),
-              dobController.text.toString(),
-              genderController.text.toString(),
-              addressController.text.toString(),
-              socialMediaController.text.toString(),
-              noteController.text.toString());
-
-        }
         //Navigator.pop(context);
       },
       child: Container(
@@ -471,6 +364,69 @@ class _UpdateUserProfilePageState extends State<UpdateUserProfilePage> {
       ),
 
     );
+  }
+  bottomSheet () {
+    return Get.bottomSheet(
+        Container(
+          height: 80,
+          color: Color(0xFF926AD3),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    backgroundColor: Colors.white,
+                  ),
+                  height: 18,
+                  width: 18,
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  "Please wait...",
+                  style: TextStyle(fontSize: 18,color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        )
+    );
+    // return showModalBottomSheet<void>(
+    //   context: context,
+    //   builder: (BuildContext context) {
+    //     return Container(
+    //       height: 80,
+    //       color: Color(0xFF926AD3),
+    //       child: Center(
+    //         child: Row(
+    //           mainAxisAlignment: MainAxisAlignment.center,
+    //           mainAxisSize: MainAxisSize.min,
+    //           children: <Widget>[
+    //             SizedBox(
+    //               child: CircularProgressIndicator(
+    //                 strokeWidth: 3,
+    //                 backgroundColor: Colors.white,
+    //               ),
+    //               height: 18,
+    //               width: 18,
+    //             ),
+    //             SizedBox(
+    //               width: 10,
+    //             ),
+    //             Text(
+    //               "Please wait...",
+    //               style: TextStyle(fontSize: 18,color: Colors.white),
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     );
+    //   },
+    // );
   }
 
   Future getImage(int status) async {

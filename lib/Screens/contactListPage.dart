@@ -309,200 +309,6 @@ class _ContactListPageState extends State<ContactListPage> {
     }
   }
 
-  Widget _moreButton(Contact contact) {
-    String favourite = contact.favourite.toString();
-    bool status = false;
-    if (favourite == 'true') {
-      status = true;
-    } else {
-      status = false;
-    }
-    return Padding(
-      padding: EdgeInsets.only(left: 20, right: 20),
-      child: Column(
-        children: [
-          Divider(color: Colors.white),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              //menus
-              Row(
-                children: [
-                  //FAVOURITE
-                  // InkWell(
-                  //     onTap: () {
-                  //       setState(() {
-                  //         print("BEFORE "+ status.toString());
-                  //         status = !status;
-                  //         print("AFTER "+ status.toString());
-                  //         _updateStatusApi(contact.id.toString(), status.toString());
-                  //       });
-                  //       print("Favorite Tapped !");
-                  //     },
-                  //     child: (status) ? (Icon(Icons.star_rate_rounded, color: Colors.white)) : (Icon(Icons.star_border_rounded, color: Colors.white)),
-                  //     ),
-
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  //EMAIL
-                  InkWell(
-                    onTap: () {
-                      if (contact.email?.isEmpty ?? true) {
-                        setState(() {
-                          // ScaffoldMessenger.of(context)
-                          //     .showSnackBar(const SnackBar(
-                          //   backgroundColor: Color(0xFF926AD3),
-                          //   content: Text(
-                          //     "eMail address is not saved!",
-                          //     style: TextStyle(fontSize: 14),
-                          //   ),
-                          //   duration: Duration(milliseconds: 1000),
-                          // ));
-                          Get.snackbar(
-                            "Warning",
-                            "Email address is not saved!",
-                            colorText: Colors.white,
-                            //icon: Icon(Icons.person, color: Colors.white),
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Color(0xFF926AD3),
-                            duration: Duration(seconds: 4),
-                            isDismissible: true,
-                          );
-                        });
-                      } else {
-                        final mailtoLink = Mailto(
-                          to: [contact.email!],
-                          //cc: ['cc1@example.com', 'cc2@example.com'],
-                          //subject: 'mailto example subject',
-                          //body: 'mailto example body',
-                        );
-                        // Convert the Mailto instance into a string.
-                        // Use either Dart's string interpolation
-                        // or the toString() method.
-                        launch('$mailtoLink');
-                      }
-                    },
-                    child: const Icon(
-                      Icons.email_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  //CALL
-                  InkWell(
-                    onTap: (_hasCallSupport &&
-                            (contact.phone_no?.isNotEmpty ?? false))
-                        ? () => setState(() {
-                              _launched = _makePhoneCall(contact.phone_no!);
-                            })
-                        : () => setState(() {
-                              // ScaffoldMessenger.of(context)
-                              //     .showSnackBar(const SnackBar(
-                              //   backgroundColor: Color(0xFF926AD3),
-                              //   content: Text(
-                              //     "Phone number is not saved!",
-                              //     style: TextStyle(fontSize: 14),
-                              //   ),
-                              //   duration: Duration(milliseconds: 1000),
-                              // ));
-                              Get.snackbar(
-                                "Warning",
-                                "Phone number is not saved!",
-                                colorText: Colors.white,
-                                //icon: Icon(Icons.person, color: Colors.white),
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Color(0xFF926AD3),
-                                duration: Duration(seconds: 4),
-                                isDismissible: true,
-                              );
-                            }),
-                    child: Icon(
-                      Icons.call,
-                      color: Colors.white,
-                    ),
-                  ),
-                  // ElevatedButton(
-                  //   onPressed: _hasCallSupport
-                  //       ? () => setState(() {
-                  //             _launched = _makePhoneCall(widget.contact.phone_no!);
-                  //           })
-                  //       : null,
-                  //   child: _hasCallSupport
-                  //       ? const Text('Make phone call')
-                  //       : const Text('Calling not supported'),
-                  // ),
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  //MASSAGE
-                  InkWell(
-                    onTap: () {
-                      if (contact.phone_no?.isEmpty ?? true) {
-                        setState(() {
-                          // ScaffoldMessenger.of(context)
-                          //     .showSnackBar(const SnackBar(
-                          //   backgroundColor: Color(0xFF926AD3),
-                          //   content: Text(
-                          //     "Phone number is not saved!",
-                          //     style: TextStyle(fontSize: 14),
-                          //   ),
-                          //   duration: Duration(milliseconds: 1000),
-                          // ));
-                          Get.snackbar(
-                            "Warning",
-                            "Phone number is not saved!",
-                            colorText: Colors.white,
-                            //icon: Icon(Icons.person, color: Colors.white),
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Color(0xFF926AD3),
-                            duration: Duration(seconds: 4),
-                            isDismissible: true,
-                          );
-                        });
-                      } else {
-                        _sendingSMS(contact.phone_no!);
-                      }
-                    },
-                    child: const Icon(
-                      Icons.message,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                ],
-              ),
-
-              ElevatedButton(
-                onPressed: () {
-                  // Get.to(SingleContactDetailsPage(
-                  //   contact: contact,
-                  //   token: ContactListPage.barerToken,
-                  //   isChanged: false,
-                  // ));
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //       builder: (context) => SingleContactDetailsPage(
-                  //         contact: contact,
-                  //         token: ContactListPage.barerToken,
-                  //         isChanged: false,
-                  //       ),
-                  //     ));
-                },
-                child: Text("View Details"),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _floatingActionButton() {
     return InkWell(
       onTap: () {
@@ -593,16 +399,6 @@ class _ContactListPageState extends State<ContactListPage> {
     }
   }
 
-  Widget _customCircularIndicator() {
-    return Container(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
   Widget _popUpMenus() {
     return PopupMenuButton(
         // add icon, by default "3 dot" icon
@@ -685,7 +481,6 @@ class _ContactListPageState extends State<ContactListPage> {
             //widget.contact.favourite?.isEmpty ?? true
             if (ContactListPage.user!.isNotEmpty ?? true) {
               Get.to(() => UserProfilePage(
-                    user: ContactListPage.user[0],
                     isChanged: false,
                   ));
               // Get.to();
@@ -701,7 +496,9 @@ class _ContactListPageState extends State<ContactListPage> {
             if (kDebugMode) {
               print("Settings menu is selected.");
             }
-            Get.to(() => SettingPage());
+            Get.to(() => SettingPage(
+                  isShow: true, parent: '',
+                ));
             // Navigator.push(context,
             //     MaterialPageRoute(builder: ((context) => SettingPage())));
           } else if (value == 3) {

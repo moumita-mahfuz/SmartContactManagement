@@ -12,8 +12,7 @@ class JoinGroupDialogContent extends StatefulWidget {
   const JoinGroupDialogContent({Key? key}) : super(key: key);
 
   @override
-  State<JoinGroupDialogContent> createState() =>
-      _JoinGroupDialogContentState();
+  State<JoinGroupDialogContent> createState() => _JoinGroupDialogContentState();
 }
 
 class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
@@ -46,206 +45,197 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: (status)
           ? Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-        children: [
-            // IconButton(onPressed: () => {
-            // }, icon: Icon(Icons.chevron_left_outlined)),
-            Padding(
-              padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 18),
-              child: Text(
-                'Join Group',
-                style: TextStyle(
-                    fontSize: 20,
-                    color: Color(0xFF926AD3),
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            _textShowField('Group Name', joinGroupNameController),
-            SizedBox(
-              height: 20,
-            ),
-            _textShowField(
-                'Owner\'s Email', joinGroupOwnerEmailController),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              //mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () => Get.back(),
-                  child: Text(
-                    "  Cancel  ",
-                    style: TextStyle(color: Color(0xFF926AD3)),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: BorderSide(color: Color(0xFF926AD3)),
-                  ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    body2 = {
-                      'group_id': groupID,
-                      'group_name': groupName,
-                    };
-                    print(groupID + groupName);
-                    setState(() {
-                      _joinCircularIndicator = true;
-                    });
-                    await _postMethod(joinGroupUri, body2,
-                        _joinCircularIndicator, 'join');
-                    setState(() {
-                      _joinCircularIndicator = false;
-                    });
-                    Future.delayed(Duration(milliseconds: 100), () {
-                      Get.back(); // Close the sheet after the request is completed and the snackbar is closed
-                      Get.snackbar(
-                        'Success!',
-                        'Joining Request has been sent. Please wait for approval from the group owner!',
-                        colorText: Colors.white,
-                        backgroundColor: Color(0xFF926AD3),
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    });
-                  },
-                  child: (_joinCircularIndicator)
-                      ? Row(
-                    children: [
-                      SizedBox(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          backgroundColor: Colors.white,
-                        ),
-                        height: 12,
-                        width: 12,
-                      ),
-                      Text(" Joining "),
-                    ],
-                  )
-                      : Text("   Join   "),
-                ),
-              ],
-            ),
-        ],
-      ),
-          )
-          : Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-        children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 14),
-              child: Text(
-                'Search Group',
-                style: TextStyle(
-                    fontSize: 20,
-                    color: Color(0xFF926AD3),
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            Form(
-              key: _joinGroupSearchFormKey,
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  _textInputField(
-                    'Group Name',
-                    joinGroupNameController,
-                    TextInputType.name,
-                    TextCapitalization.words,
+                  // IconButton(onPressed: () => {
+                  // }, icon: Icon(Icons.chevron_left_outlined)),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 18),
+                    child: Text(
+                      'Join Group',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Color(0xFF926AD3),
+                          fontWeight: FontWeight.w500),
+                    ),
                   ),
+                  _textShowField('Group Name', joinGroupNameController),
                   SizedBox(
                     height: 20,
                   ),
-                  _textInputField(
-                    'Owner\'s Email',
-                    joinGroupOwnerEmailController,
-                    TextInputType.emailAddress,
-                    TextCapitalization.none,
+                  _textShowField(
+                      'Owner\'s Email', joinGroupOwnerEmailController),
+                  Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    //mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => Get.back(),
+                        child: Text(
+                          "  Cancel  ",
+                          style: TextStyle(color: Color(0xFF926AD3)),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: BorderSide(color: Color(0xFF926AD3)),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          body2 = {
+                            'group_id': groupID,
+                            'group_name': groupName,
+                          };
+                          print(groupID + groupName);
+                          setState(() {
+                            _joinCircularIndicator = true;
+                          });
+                          await _postMethod(joinGroupUri, body2,
+                              _joinCircularIndicator, 'join');
+                          setState(() {
+                            _joinCircularIndicator = false;
+                          });
+                          Future.delayed(Duration(milliseconds: 100), () {
+                            Get.back(); // Close the sheet after the request is completed and the snackbar is closed
+                            Get.snackbar(
+                              'Success!',
+                              'Joining Request has been sent. Please wait for approval from the group owner!',
+                              colorText: Colors.white,
+                              backgroundColor: Color(0xFF926AD3),
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          });
+                        },
+                        child: (_joinCircularIndicator)
+                            ? Row(
+                                children: [
+                                  SizedBox(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      backgroundColor: Colors.white,
+                                    ),
+                                    height: 12,
+                                    width: 12,
+                                  ),
+                                  Text(" Joining "),
+                                ],
+                              )
+                            : Text("   Join   "),
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    height: 20,
+                ],
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 14),
+                    child: Text(
+                      'Search Group',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Color(0xFF926AD3),
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  Form(
+                    key: _joinGroupSearchFormKey,
+                    child: Column(
+                      children: [
+                        _textInputField(
+                          'Group Name',
+                          joinGroupNameController,
+                          TextInputType.name,
+                          TextCapitalization.words,
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        _textInputField(
+                          'Owner\'s Email',
+                          joinGroupOwnerEmailController,
+                          TextInputType.emailAddress,
+                          TextCapitalization.none,
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    //mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => Get.back(),
+                        child: Text(
+                          "  Cancel  ",
+                          style: TextStyle(color: Color(0xFF926AD3)),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: BorderSide(color: Color(0xFF926AD3)),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      ElevatedButton(
+                        onPressed: _searchCircularIndicator
+                            ? null
+                            : () async {
+                                // Validate returns true if the form is valid, or false otherwise.
+                                if (_joinGroupSearchFormKey.currentState!
+                                    .validate()) {
+                                  body = {
+                                    'group_name': joinGroupNameController.text,
+                                    'email': joinGroupOwnerEmailController.text,
+                                  };
+                                  setState(() {
+                                    _searchCircularIndicator = true;
+                                  });
+                                  await _postMethod(
+                                    joinSearchUri,
+                                    body,
+                                    _searchCircularIndicator,
+                                    'search',
+                                  );
+                                  setState(() {
+                                    _searchCircularIndicator = false;
+                                  });
+                                }
+                              },
+                        child: (_searchCircularIndicator)
+                            ? Row(
+                                children: [
+                                  SizedBox(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      backgroundColor: Colors.white,
+                                    ),
+                                    height: 12,
+                                    width: 12,
+                                  ),
+                                  Text(" Searching "),
+                                ],
+                              )
+                            : Text("  Search  "),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              //mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () => Get.back(),
-                  child: Text(
-                    "  Cancel  ",
-                    style: TextStyle(color: Color(0xFF926AD3)),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: BorderSide(color: Color(0xFF926AD3)),
-                  ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                ElevatedButton(
-                  onPressed: _searchCircularIndicator
-                      ? null
-                      : () async {
-                    // Validate returns true if the form is valid, or false otherwise.
-                    if (_joinGroupSearchFormKey.currentState!
-                        .validate()) {
-                      body = {
-                        'group_name': joinGroupNameController.text,
-                        'email': joinGroupOwnerEmailController.text,
-                      };
-                      setState(() {
-                        _searchCircularIndicator = true;
-                      });
-                      await _postMethod(
-                        joinSearchUri,
-                        body,
-                        _searchCircularIndicator,
-                        'search',
-                      );
-                      setState(() {
-                        _searchCircularIndicator = false;
-                      });
-                      Future.delayed(Duration(milliseconds: 100), () {
-                        Get.snackbar(
-                          'Warning',
-                          'Please Try Again!',
-                          colorText: Colors.white,
-                          backgroundColor: Color(0xFF926AD3),
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      });
-                    }
-                  },
-                  child: (_searchCircularIndicator)
-                      ? Row(
-                    children: [
-                      SizedBox(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          backgroundColor: Colors.white,
-                        ),
-                        height: 12,
-                        width: 12,
-                      ),
-                      Text(" Searching "),
-                    ],
-                  )
-                      : Text("  Search  "),
-                ),
-              ],
-            ),
-        ],
-      ),
-          ),
     );
   }
 
@@ -261,7 +251,7 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
       'Authorization': 'Bearer ${prefs.getString('token')}',
     };
     Response response =
-    await post(Uri.parse(uri), headers: headers, body: body);
+        await post(Uri.parse(uri), headers: headers, body: body);
     print(response.statusCode);
 
     if (response.statusCode == 200) {
@@ -273,6 +263,13 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
         setState(() {
           _validate = true;
         });
+        Get.snackbar(
+          'Warning',
+          'Please Try Again!',
+          colorText: Colors.white,
+          backgroundColor: Color(0xFF926AD3),
+          snackPosition: SnackPosition.BOTTOM,
+        );
       } else if (message == 'Find Group') {
         final responseBody = jsonBody['data'] as Map<String, dynamic>;
         print(responseBody);
@@ -285,7 +282,7 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
         });
       } else if (message == 'Successfully Send invitation') {
         Get.snackbar(
-          '',
+          'Success',
           'Joining Request has been sent. Please wait for approval from group owner!',
           colorText: Colors.white,
           backgroundColor: Color(0xFF926AD3),
@@ -297,7 +294,7 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
     if (response.statusCode == 422) {
       if (callFor == 'join') {
         Get.snackbar(
-          '',
+          'Warning',
           'Joining Request has been sent already. Please wait for approval from group owner!',
           colorText: Colors.white,
           backgroundColor: Color(0xFF926AD3),
@@ -305,8 +302,7 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
         );
 
         back();
-      }
-      if (callFor == 'search') {
+      } else if (callFor == 'search') {
         Get.snackbar(
           'Warning',
           'Please Try Again!',
@@ -319,9 +315,9 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
   }
 
   Widget _textShowField(
-      String field,
-      TextEditingController controller,
-      ) {
+    String field,
+    TextEditingController controller,
+  ) {
     return TextField(
       controller: controller,
       enabled: false, // Set enabled to false to make it read-only
@@ -339,11 +335,11 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
   }
 
   Widget _textInputField(
-      String field,
-      TextEditingController controller,
-      TextInputType inputType,
-      TextCapitalization capitalizationValue,
-      ) {
+    String field,
+    TextEditingController controller,
+    TextInputType inputType,
+    TextCapitalization capitalizationValue,
+  ) {
     return TextFormField(
       controller: controller,
       textInputAction: TextInputAction.next,
@@ -364,4 +360,3 @@ class _JoinGroupDialogContentState extends State<JoinGroupDialogContent> {
     );
   }
 }
-

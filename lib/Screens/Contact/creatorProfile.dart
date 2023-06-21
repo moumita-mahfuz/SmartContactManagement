@@ -282,7 +282,7 @@ class _CreatorProfileState extends State<CreatorProfile> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => SettingPage())));
+                        builder: ((context) => SettingPage(isShow: true, parent: '',))));
                 if (kDebugMode) {
                   print("Settings menu is selected.");
                 }

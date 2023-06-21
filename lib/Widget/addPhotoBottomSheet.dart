@@ -26,7 +26,12 @@ class _AddPhotoBottomSheetState extends State<AddPhotoBottomSheet> {
       },
       child: Container(
         height: 400,
-        color: Colors.white,
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         child: Column(
           children: [
             Padding(
@@ -92,8 +97,8 @@ class _AddPhotoBottomSheetState extends State<AddPhotoBottomSheet> {
       "Accept": 'application/json',
       'Authorization': 'Bearer ${prefs.getString('token')}'
     };
-    ///submitted_multi_img/{id}/update
-    String uri = 'https://scm.womenindigital.net/api/submitted_multi_img/$id/update';
+    ///https://scm.womenindigital.net/api/submitted_multi_image/2/update
+    String uri = 'https://scm.womenindigital.net/api/submitted_multi_image/$id/update';
     Map<String, String> body = {
       'fromSubmitId': id.toString(),
     };
@@ -114,6 +119,7 @@ class _AddPhotoBottomSheetState extends State<AddPhotoBottomSheet> {
       print(response.statusCode);
     }
     if(response.statusCode == 200) {
+      print(response.stream.toString());
       setState(() {
         _searchCircularIndicator = false;
       });

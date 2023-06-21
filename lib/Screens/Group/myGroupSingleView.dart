@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 import '../../Model/contact.dart';
+import 'addMemberToGroup.dart';
 
 class MyGroupSingleView extends StatefulWidget {
   String groupName;
@@ -41,9 +42,6 @@ class _MyGroupSingleViewState extends State<MyGroupSingleView> {
     _futureMemberList = fetchGroupMember(myGroupMemberListUri);
   }
 
-  final _sentInviteFormKey = GlobalKey<FormState>();
-  TextEditingController emailController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -58,7 +56,7 @@ class _MyGroupSingleViewState extends State<MyGroupSingleView> {
           Padding(
             padding: EdgeInsets.only(left: 10, right: 10),
             child: InkWell(
-              onTap: () => _inviteBottomSheet(),
+              onTap: () =>  _inviteGroupBottomSheet(),
               child: Icon(
                 Icons.add,
                 color: Colors.white,
@@ -161,115 +159,16 @@ class _MyGroupSingleViewState extends State<MyGroupSingleView> {
     );
   }
 
-  _inviteBottomSheet() {
-    emailController.text = '';
+  _inviteGroupBottomSheet () {
     return Get.bottomSheet(
-      isScrollControlled: true,
-      Container(
-        height: 300,
-        color: Colors.white,
-        padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-        child: Center(
-          child: Form(
-            key: _sentInviteFormKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 40),
-                  child: Text(
-                    'Add Member',
-                    style: TextStyle(
-                        fontSize: 20,
-                        color: Color(0xFF926AD3),
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-                //quantity": 0, "unit": "string", "unitValue": 0, "pastQuantity": 0
-                _textInputField(
-                    'Email', emailController, TextInputType.emailAddress),
-                const SizedBox(
-                  height: 20,
-                ),
-
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Get.back();
-                      },
-                      child: const Text("Cancel"),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // Validate returns true if the form is valid, or false otherwise.
-                        if (_sentInviteFormKey.currentState!.validate()) {
-                          await _inviteToGroup(emailController.text);
-                          Future.delayed(Duration(milliseconds: 100), () {
-                            Get.back(); // Close the sheet after the request is completed and the snackbar is closed
-                          });
-                        }
-                      },
-                      child: Text('Submit'),
-                      //child: (_quantityCircularIndicator) ? Text("Loading...") : const Text('okay'),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ),
+        isScrollControlled: true,
+        isDismissible: false,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
-      ),
-      isDismissible: false,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(35),
-      ),
-      enableDrag: false,
+        enableDrag: false,
+        AddMemberToGroup(groupName: widget.groupName, groupId: widget.groupId,),
     );
-  }
-
-  _inviteToGroup(String email) async {
-    final prefs = await SharedPreferences.getInstance();
-    String uri = 'https://scm.womenindigital.net/api/search-and-send-invite';
-    Map<String, String> headers = {
-      "Accept": 'application/json',
-      'Authorization': 'Bearer ${prefs.getString('token')}'
-    };
-    Map<String, String> body = {
-      'group_id': widget.groupId.toString(),
-      'group_name': widget.groupName.toString(),
-      'email': email
-    };
-    Response response =
-        await post(Uri.parse(uri), headers: headers, body: body);
-    //var request = http.post(Uri.parse(uri), headers: headers, body: body);
-    print(response.statusCode);
-    if (response.statusCode == 200) {
-      print(response.body.toString());
-      var data = jsonDecode(response.body.toString());
-      print(data['massage']);
-      if (data['massage'] == 'not user') {
-        Get.snackbar('Error', 'Not a user of SCM. Try Again!',
-            colorText: Colors.white,
-            backgroundColor: Color(0xFF926AD3),
-            snackPosition: SnackPosition.BOTTOM);
-      } else if (data['massage'] == 'All Ready exists') {
-        Get.snackbar(
-            'Error', 'Already exists or sent invitation. Wait for approval!',
-            colorText: Colors.white,
-            backgroundColor: Color(0xFF926AD3),
-            snackPosition: SnackPosition.BOTTOM);
-      }
-    } else {
-      Get.snackbar('Error', 'Group invitation sent is failed. Try Again!',
-          colorText: Color(0xFF926AD3),
-          backgroundColor: Colors.white,
-          snackPosition: SnackPosition.BOTTOM);
-    }
   }
 
   _topPopupMenu() {
@@ -325,26 +224,6 @@ class _MyGroupSingleViewState extends State<MyGroupSingleView> {
             }
           }
         });
-  }
-
-  Widget _textInputField(
-      String field, TextEditingController controller, TextInputType inputType) {
-    return TextFormField(
-      controller: controller,
-      textInputAction: TextInputAction.next,
-      keyboardType: inputType,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        labelText: '$field',
-      ),
-      // The validator receives the text that the user has entered.
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '$field is required';
-        }
-        return null;
-      },
-    );
   }
 
   Future<List<Contact>> fetchGroupMember(String uri) async {

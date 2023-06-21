@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:community_app/Screens/Auth/signup.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'  hide Response, FormData, MultipartFile;
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../contactListPage.dart';
@@ -47,18 +47,19 @@ class _LoginPageState extends State<LoginPage> {
           //https://scm.womenindigital.net/api/auth/login
           Uri.parse('https://scm.womenindigital.net/api/auth/loginUser'),
           body: {'email': email, 'password': password});
-
+      print(response.statusCode);
+      var data = jsonDecode(response.body.toString());
       if (response.statusCode == 200) {
         setState(() {
           _circularIndicator = false;
         });
-        var data = jsonDecode(response.body.toString());
+        print(data);
         final prefs = await SharedPreferences.getInstance();
         prefs.setBool('isLoggedIn', true);
         prefs.setString('token', data['token']);
         prefs.setInt('loginID', data['data']['id']);
         prefs.setString('login-pass', password);
-        print (data['token']);
+        print(data['token']);
         Get.offAll(ContactListPage(
           token: data['token'],
         ));
@@ -66,6 +67,24 @@ class _LoginPageState extends State<LoginPage> {
         print(data['token']);
         print(data['data']['id']);
         print('Login successfully');
+      }
+      //{"success":false,"message":"Invalid login credentials."}
+      //{"success":false,"message":"Email not verified. Please verify your email."}
+      else if (response.statusCode == 401) {
+        print(response.body);
+        setState(() {
+          _circularIndicator = false;
+        });
+        Get.snackbar(
+          "Error",
+          data['message'],
+          colorText: Colors.white,
+          //icon: Icon(Icons.person, color: Colors.white),
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Color(0xFF926AD3),
+          duration: Duration(seconds: 6),
+          isDismissible: true,
+        );
       } else {
         setState(() {
           _circularIndicator = false;
@@ -287,24 +306,33 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _forgetPassword() {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
         if (!currentFocus.hasPrimaryFocus) {
           currentFocus.unfocus();
         }
-        Get.to(ForgetPasswordPage());
-        // Navigator.push(context,
-        //     MaterialPageRoute(builder: (context) => ForgetPasswordPage()));
+        Get.to(() => ForgetPasswordPage());
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => ForgetPasswordPage()));
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        alignment: Alignment.center,
-        child: const Text('Forget Password?',
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.transparent,
+          // You can also add other decorations like border, shadow, etc.
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          alignment: Alignment.center,
+          child: Text(
+            'Forget Password?',
             style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500)),
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ),
     );
   }
